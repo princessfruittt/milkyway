@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/princessfruittt/ansitotosca/pkg/cmd"
 	"os"
-	"AnsiToTosca/pkg/cmd"
 )
 
 func main() {
-	resp := commands.Execute(os.Args[1:])
+	resp := cmd.Execute(os.Args[1:])
 
 	if resp.Err != nil {
 		if resp.IsUserError() {

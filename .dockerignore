@@ -1,0 +1,9 @@
+*.md
+*.log
+*.txt
+.git
+.github
+.idea
+docs
+examples
+Dockerfile

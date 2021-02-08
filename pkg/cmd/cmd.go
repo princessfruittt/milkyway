@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 	"time"
 )
@@ -19,12 +20,11 @@ func (b *cmdsBuilder) addCMDS(cmds ...cmdErrorHandler) *cmdsBuilder {
 	return b
 }
 func (b *cmdsBuilder) addAllCMDS(cmds ...cmdErrorHandler) *cmdsBuilder {
-	//b.addAllCMDS(
-	//	b.sjjsjds)
+	b.addCMDS(b.newGenerateCmd())
 	return b
 }
 func (b *cmdsBuilder) build() *commonCmd {
-	c := b.newCommoncmd()
+	c := b.newCommonCMD()
 	addCmds(c.getCommand(), b.cmds...)
 	return c
 }
@@ -62,60 +62,63 @@ func newBaseCmd(cmd *cobra.Command) *baseCmd {
 	return &baseCmd{cmd: cmd}
 }
 
-func (b *cmdsBuilder) newBuilderCmd(cmd *cobra.Command) *baseBuilderCmd  {
-	bbc := &baseBuilderCmd{cmdsBuilder: b, baseCmd: &baseCmd{cmd: cmd}}
-	bbc.builderCommon.handleFlags(cmd)
-	return bbc
-}
-
-func (b *cmdsBuilder) newBuilderBasicCmd(cmd *cobra.Command) *baseBuilderCmd  {
-	bbc := &baseBuilderCmd{cmdsBuilder: b, baseCmd: &baseCmd{cmd: cmd}}
-	bbc.builderCommon.handleCommonBuilderFlags(cmd)
-	return bbc
-}
-
-
 type commonCmd struct {
 	*baseBuilderCmd
+	c *cmdError
 }
 
 var _ cmdErrorHandler = (*nilCommand)(nil)
 
-type nilCommand struct {
-}
 func (c *nilCommand) getCommand() *cobra.Command {
 	return nil
 }
 
+type nilCommand struct {
+}
 
 func (b *cmdsBuilder) newCommonCMD() *commonCmd {
 	cc := &commonCmd{}
 	cc.baseBuilderCmd = b.newBuilderCmd(&cobra.Command{
-		//Scarpia/Talos
-		Use:   "amaranth -u URL",
+		//Scarpia
+		Use:                   "milkyway -u URL",
 		DisableFlagsInUseLine: true,
-		Short: "amaranth generate TOSCA node types from Ansible role",
-		Long:  "amaranth is the main command, used to generate TOSCA node types from Ansible Galaxy role",
+		Short:                 "milkyway generate TOSCA node types from Ansible role",
+		Long:                  "milkyway is the main command, used to generate TOSCA node types from Ansible Galaxy role",
 		Example: `
 		# Apply the configuration in pod.json to a pod.
 		amaranth -u "https://github.com/gantsign/ansible-role-golang"`,
-		Run: func(cmd *cobra.Command, args []string) error {
+		Run: func(cmd *cobra.Command, args []string) {
 			defer cc.timeTrack(time.Now(), "Total")
-			cc.c =c
-			return c.build()
+			c := result{"my result"}
+			fmt.Print(c.build())
 		},
 	})
 
 	return cc
 }
-type builderCommon struct {
-	roleURL     string
 
+type builderCommon struct {
+	roleURL string
+	quiet   bool
 }
-func (cc *commonCmd) handleFlags(cmd *cobra.Command){
-	cc.handleFlags(cmd)
+
+func (cc *builderCommon) handleFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&cc.roleURL, "roleURL", "u", "", "Ansible galaxy GitHub URL e.g. https://github.com/gantsign/ansible-role-golang")
 }
+
+func (b *cmdsBuilder) newBuilderCmd(cmd *cobra.Command) *baseBuilderCmd {
+	bbc := &baseBuilderCmd{cmdsBuilder: b, baseCmd: &baseCmd{cmd: cmd}}
+	bbc.builderCommon.handleFlags(cmd)
+	return bbc
+}
+func (cc *builderCommon) timeTrack(start time.Time, name string) {
+	if cc.quiet {
+		return
+	}
+	elapsed := time.Since(start)
+	fmt.Printf("%s in %v ms\n", name, int(1000*elapsed.Seconds()))
+}
+
 //func checkErr(logger loggers.Logger, err error, s ...string) {
 //	if err == nil {
 //		return

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/google/go-github/v34/github"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
 	"net/url"
@@ -17,6 +18,22 @@ import (
 
 type generateCmd struct {
 	*baseBuilderCmd
+}
+
+type ToscaNodeType struct {
+	Properties string `yaml:"properties"`
+}
+
+type toscaTemplate struct {
+	Version       string `yaml:"tosca_definitions_version"`
+	ToscaNodeType `yaml:",inline"`
+}
+
+var toscatemplate = toscaTemplate{
+	Version: "tosca_simple_yaml_1_3",
+	ToscaNodeType: ToscaNodeType{
+		Properties: "params",
+	},
 }
 
 func (b *cmdsBuilder) newGenerateCmd() *generateCmd {
@@ -45,29 +62,36 @@ func (c *generateCmd) generateTypes(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println(opt.GetSource().Source)
+	fmt.Println("game")
 }
 
 func getContents(ctx context.Context, client *github.Client, owner string, repo string, path string, parentDirName string) {
-	fileContent, directoryContent, response, err := client.Repositories.GetContents(ctx, owner, repo, path, nil)
+	_, directoryContent, _, err := client.Repositories.GetContents(ctx, owner, repo, path, nil)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 		return
 	}
-	fmt.Printf("%#v\n", fileContent)
-	fmt.Printf("%#v\n", directoryContent)
-	fmt.Printf("%#v\n", response)
 
 	for _, c := range directoryContent {
 		fmt.Println(*c.Type, *c.Size, *c.SHA)
+		somedata := &toscaTemplate{}
 
+		yaml_temp, _ := yaml.Marshal(toscatemplate)
+		fmt.Println(yaml.Unmarshal(yaml_temp, somedata))
+		err := yaml.Unmarshal(yaml_temp, somedata)
+		if err != nil {
+			log.Fatal(err)
+		} else {
+			log.Print(somedata)
+			fmt.Printf("--- m:\n%v\n\n", string(yaml_temp))
+		}
 		switch *c.Type {
 		case "file":
 			switch parentDirName {
 			case "templates":
 				fmt.Println(parentDirName)
 				downloadContents(ctx, owner, repo, client, c)
+				//fmt.Println(yaml.Marshal(toscaTemplate{}))
 			case "defaults":
 				fmt.Println(parentDirName)
 				downloadContents(ctx, owner, repo, client, c)
@@ -94,13 +118,13 @@ func getContents(ctx context.Context, client *github.Client, owner string, repo 
 func downloadContents(ctx context.Context, owner string, repo string, client *github.Client, content *github.RepositoryContent) {
 	rc, _, _, err_download := client.Repositories.DownloadContentsWithMeta(ctx, owner, repo, *content.Path, nil)
 	if err_download != nil {
-		fmt.Println(err_download)
+		log.Fatal(err_download)
 		return
 	}
 	defer rc.Close()
 	var b, err_read = ioutil.ReadAll(rc)
 	if err_read != nil {
-		fmt.Println(err_read)
+		log.Fatal(err_read)
 		return
 	}
 	sha := calculateGitSHA1(b)
@@ -108,7 +132,8 @@ func downloadContents(ctx context.Context, owner string, repo string, client *gi
 		fmt.Println("no need to update this file, the SHA is the same")
 		fmt.Print(string(b))
 	} else {
-		fmt.Println("SHA err")
+		log.Fatal("SHA err")
+		return
 	}
 
 }

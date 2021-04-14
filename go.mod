@@ -8,5 +8,6 @@ require (
 	github.com/google/go-github/v34 v34.0.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/jwalterweatherman v1.1.0
+	github.com/ystia/yorc v3.1.2+incompatible // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 )

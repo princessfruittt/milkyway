@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
-	"fmt"
 	"github.com/google/go-github/v34/github"
 	"io/ioutil"
 	"log"
@@ -28,7 +27,7 @@ type GithubConnection struct {
 	url         string
 	owner       string
 	repo        string
-	ansibleRole ansibleRole
+	ansibleRole AnsibleRole
 }
 
 func NewConnectionBuilder(urlPath string) *GithubConnection {
@@ -38,7 +37,7 @@ func NewConnectionBuilder(urlPath string) *GithubConnection {
 		url:         urlPath,
 		owner:       strings.Split(urlPath, "/")[1],
 		repo:        strings.Split(urlPath, "/")[2],
-		ansibleRole: ansibleRole{},
+		ansibleRole: AnsibleRole{},
 	}
 }
 
@@ -58,12 +57,17 @@ func (cb *GithubConnection) getContents(path string, parentDirName string) (err 
 					if err != nil {
 						return err
 					} else {
-						//TODO try capitalize struct fields
-						reflect.ValueOf(&cb.ansibleRole).Elem().FieldByName(parentDirName).SetBytes(b)
-						cb.ansibleRole.defaults = b
+						ra := reflect.ValueOf(&cb.ansibleRole).Elem()
+						ra.FieldByName(strings.Title(parentDirName) + "Main").SetBytes(b)
 					}
 				} else {
-					fmt.Print("TODO")
+					b, err := downloadContents(cb, c)
+					if err != nil {
+						return err
+					} else {
+						ra := reflect.ValueOf(&cb.ansibleRole).Elem()
+						ra.FieldByName(strings.Title(parentDirName)).SetBytes(b)
+					}
 				}
 			}
 
@@ -89,11 +93,13 @@ func downloadContents(cb *GithubConnection, content *github.RepositoryContent) (
 	}
 	sha := calculateGitSHA1(b)
 	if *content.SHA == hex.EncodeToString(sha) {
-		log.Print("SHA verified for" + *content.Path)
-		fmt.Println(string(b))
+		log.Print("SHA verified for a file: " + *content.Path)
 		return b, nil
 	} else {
-		return nil, &SHAError{"invalid SHA, retry for file"}
+		return nil, &cmdError{
+			s:         "invalid SHA, retry download for a file: " + *content.Path,
+			userError: false,
+		}
 	}
 }
 

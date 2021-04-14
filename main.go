@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/princessfruittt/ansitotosca/pkg/cmd"
+	"milkyway/pkg/cmd"
 	"os"
 )
 

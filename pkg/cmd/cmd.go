@@ -79,14 +79,13 @@ type nilCommand struct {
 func (b *cmdsBuilder) newCommonCMD() *commonCmd {
 	cc := &commonCmd{}
 	cc.baseBuilderCmd = b.newBuilderCmd(&cobra.Command{
-		//Scarpia
-		Use:                   "milkyway -u URL",
+		Use:                   "milkyway [flags]",
 		DisableFlagsInUseLine: true,
 		Short:                 "milkyway generate TOSCA node types from Ansible role",
 		Long:                  "milkyway is the main command, used to generate TOSCA node types from Ansible Galaxy role",
 		Example: `
-		# Apply the configuration in pod.json to a pod.
-		amaranth -u "https://github.com/gantsign/ansible-role-golang"`,
+		# Apply the generated output tosca.node.Type in TOSCA orchestrator
+		milkyway -u "https://github.com/geerlingguy/ansible-role-nginx"`,
 		Run: func(cmd *cobra.Command, args []string) {
 			defer cc.timeTrack(time.Now(), "Total")
 			c := result{"my result"}

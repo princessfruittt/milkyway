@@ -28,10 +28,10 @@ const (
 )
 
 type PropertyDefinition struct {
-	Type        string           `yaml:"type" json:"type"`
-	Description string           `yaml:"description,omitempty" json:"description,omitempty"`
-	Required    *bool            `default:"true" yaml:"required,omitempty" json:"required,omitempty"`
-	Default     *ValueAssignment `yaml:"default,omitempty" json:"default,omitempty"`
+	Type        string      `yaml:"type" json:"type"`
+	Description string      `yaml:"description,omitempty" json:"description,omitempty"`
+	Required    *bool       `default:"true" yaml:"required,omitempty" json:"required,omitempty"`
+	Default     interface{} `yaml:"default,omitempty" json:"default,omitempty"`
 	//Value
 	Status Status `yaml:"status,omitempty" json:"status,omitempty"`
 	//Constraints    []ConstraintClause `yaml:"constraints,omitempty"`

@@ -4,6 +4,8 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 	"log"
+	"milkyway/pkg/tosca"
+	"milkyway/pkg/tosca/definitions"
 	"net/url"
 	"reflect"
 )
@@ -11,6 +13,17 @@ import (
 type generateCmd struct {
 	*baseBuilderCmd
 }
+
+const (
+	ToscaString    = "string"
+	ToscaInteger   = "integer"
+	ToscaFloat     = "float"
+	ToscaBool      = "boolean"
+	ToscaTimestamp = "timestamp"
+	ToscaNull      = "null"
+)
+
+// AnsibleRole struct for Ansible role v2.9 and less
 type AnsibleRole struct {
 	TemplatesMain []byte
 	TasksMain     []byte
@@ -19,35 +32,138 @@ type AnsibleRole struct {
 	HandlersMain  []byte
 	MetaMain      []byte
 	FilesMain     []byte
-	LibraryMain   []byte
-	Templates     []byte
-	Tasks         []byte
-	Vars          []byte
-	Defaults      []byte
-	Handlers      []byte
-	Meta          []byte
-	Files         []byte
-	Library       []byte
+	//LibraryMain   []byte
+	Templates []byte
+	Tasks     []byte
+	Vars      []byte
+	Defaults  []byte
+	Handlers  []byte
+	Meta      []byte
+	Files     []byte
+	//Library       []byte
+	Version string
 }
 type ansibleRoleMeta struct {
-	GalaxyInfo   GalaxyInfo `yaml:"galaxy_info,omitempty"`
+	Meta         GalaxyMeta `yaml:"galaxy_info,omitempty"`
 	Dependencies []string   `yaml:"dependencies,omitempty"`
 }
-type GalaxyInfo struct {
+
+type GalaxyMeta struct {
 	RoleName          string     `yaml:"role_name,omitempty"`
 	Author            string     `yaml:"author,omitempty"`
 	Description       string     `yaml:"description,omitempty"`
-	Company           string     `yaml:"company,omitempty"`
-	License           string     `yaml:"license,omitempty"`
 	Platforms         []Platform `yaml:"platforms,omitempty"`
 	MinAnsibleVersion string     `yaml:"min_ansible_version,omitempty"`
-	GalaxyTags        []string   `yaml:"galaxy_tags,omitempty"`
 }
 type Platform struct {
 	Name     string   `yaml:"name,omitempty"`
 	Versions []string `yaml:"versions,omitempty"`
 }
 
+func (b *cmdsBuilder) newGenerateCmd() *generateCmd {
+	cc := &generateCmd{}
+	cmd := &cobra.Command{
+		Use:   "generate",
+		Short: "generate tosca types",
+		Run:   cc.generateType,
+	}
+	cc.baseBuilderCmd = b.newBuilderCmd(cmd)
+	return cc
+}
+func GitHubConnect(path string) (connection GithubConnection) {
+	connection = *NewConnectionBuilder(path)
+	err := connection.getContents("", "")
+	if err != nil {
+		log.Fatal(err)
+	} else if NilFields(connection.ansibleRole) {
+		log.Fatal(&cmdError{
+			s:         "Please, make sure that Ansible Role is correct",
+			userError: true,
+		})
+	}
+	return
+}
+func (c *generateCmd) generateType(cmd *cobra.Command, args []string) {
+	u, err := url.Parse(c.roleURL)
+	if err != nil || len(u.Path) < 3 {
+		log.Fatal(err)
+	}
+	//con := GitHubConnect(u.Path)
+	//errYaml := yaml.Unmarshal(connection.ansibleRole.MetaMain, ansibleRoleMeta)
+
+	var metaMain = `
+dependencies: []
+
+galaxy_info:
+  role_name: nginx
+  author: geerlingguy
+  description: Nginx installation for Linux, FreeBSD and OpenBSD.
+  company: "Midwestern Mac, LLC"
+  license: "license (BSD, MIT)"
+  min_ansible_version: 2.4
+  platforms:
+    - name: EL
+      versions:
+        - 7
+        - 8
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - trusty
+        - xenial
+        - focal
+    - name: Archlinux
+      versions:
+        - all
+    - name: FreeBSD
+      versions:
+        - 10.3
+        - 10.2
+        - 10.1
+        - 10.0
+        - 9.3
+    - name: OpenBSD
+      versions:
+        - 5.9
+        - 6.0
+  galaxy_tags:
+    - development
+    - web
+    - nginx
+    - reverse
+    - proxy
+    - load
+    - balancer
+`
+
+	//log.Print(ansibleRoleMeta)
+	testrole := AnsibleRole{
+		TemplatesMain: nil,
+		TasksMain:     nil,
+		VarsMain:      nil,
+		DefaultsMain:  nil,
+		HandlersMain:  nil,
+		MetaMain:      nil,
+		FilesMain:     nil,
+		Templates:     nil,
+		Tasks:         nil,
+		Vars:          nil,
+		Defaults:      nil,
+		Handlers:      nil,
+		Meta:          []byte(metaMain),
+		Files:         nil,
+		Version:       "",
+	}
+	generatedType := testrole.parseRole()
+	//generatedType.Properties["role_name"].Default.Value = testrole.Meta.RoleName
+	//m["ansible.role."+testrole.Meta.RoleName] = generatedType
+	//log.Printf("--- m:\n%v\n\n", string(connection.ansibleRole.MetaMain))
+	b, _ := yaml.Marshal(generatedType)
+	log.Println(string(b))
+
+}
 func NilFields(x AnsibleRole) bool {
 	rv := reflect.ValueOf(&x).Elem()
 
@@ -58,52 +174,27 @@ func NilFields(x AnsibleRole) bool {
 	}
 	return true
 }
-
-func (b *cmdsBuilder) newGenerateCmd() *generateCmd {
-	cc := &generateCmd{}
-	cmd := &cobra.Command{
-		Use:   "generate",
-		Short: "generate tosca types",
-		Run:   cc.generateTypes,
-	}
-	cc.baseBuilderCmd = b.newBuilderCmd(cmd)
-	return cc
-}
-
-func (c *generateCmd) generateTypes(cmd *cobra.Command, args []string) {
-	u, err := url.Parse(c.roleURL)
-	if err != nil || len(u.Path) < 3 {
-		log.Fatal(err)
-	}
-	var connection = *NewConnectionBuilder(u.Path)
-
-	//TODO Don't Check it
-	ansibleRoleMeta := &ansibleRoleMeta{}
-	//generatedType := tosca.NodeType{
-	//	Type:         tosca.Type{},
-	//	Properties:   nil,
-	//	Attributes:   nil,
-	//	Requirements: nil,
-	//	Capabilities: nil,
-	//	Interfaces:   nil,
-	//	Artifacts:    nil,
-	//}
-
-	err = connection.getContents("", "")
-	if err != nil {
-		log.Fatal(err)
-	} else if NilFields(connection.ansibleRole) {
-		log.Fatal(&cmdError{
-			s:         "Please, make sure that Ansible Role is correct",
-			userError: true,
-		})
-	}
-
-	errYaml := yaml.Unmarshal(connection.ansibleRole.MetaMain, ansibleRoleMeta)
+func (ar AnsibleRole) parseRole() map[string]tosca.NodeType {
+	m := &ansibleRoleMeta{}
+	errYaml := yaml.Unmarshal([]byte(ar.Meta), m)
 	if errYaml != nil {
 		log.Fatal(errYaml)
-	} else {
-		log.Print(ansibleRoleMeta)
-		//log.Printf("--- m:\n%v\n\n", string(connection.ansibleRole.MetaMain))
 	}
+
+	nt := tosca.NodeType{
+		Type: tosca.Type{
+			Base: tosca.Node, DerivedFrom: "tosca.nodes.Root", Version: "0.0", Description: m.Meta.Description,
+			Metadata: map[string]string{"author": m.Meta.Author, "min_ansible_version": m.Meta.MinAnsibleVersion}},
+		Properties:   make(map[string]definitions.PropertyDefinition),
+		Attributes:   nil,
+		Requirements: nil,
+		Capabilities: nil,
+		Interfaces:   nil,
+		Artifacts:    nil,
+	}
+	nt.AddProperty("role_name",
+		definitions.PropertyDefinition{
+			Type: ToscaString, Description: "RoleName", Required: &[]bool{true}[0],
+			Default: &definitions.ValueAssignment{Type: definitions.ValueAssignmentMap, Value: m.Meta.RoleName}})
+	return map[string]tosca.NodeType{m.Meta.RoleName: nt}
 }

@@ -13,14 +13,6 @@ import (
 	"strings"
 )
 
-type SHAError struct {
-	s string
-}
-
-func (S SHAError) Error() string {
-	return S.s
-}
-
 type GithubConnection struct {
 	client      *github.Client
 	ctx         context.Context
@@ -82,14 +74,14 @@ func (cb *GithubConnection) getContents(path string, parentDirName string) (err 
 }
 
 func downloadContents(cb *GithubConnection, content *github.RepositoryContent) ([]byte, error) {
-	rc, _, _, err_download := cb.client.Repositories.DownloadContentsWithMeta(cb.ctx, cb.owner, cb.repo, *content.Path, nil)
-	if err_download != nil {
-		return nil, err_download
+	rc, _, _, errDownload := cb.client.Repositories.DownloadContentsWithMeta(cb.ctx, cb.owner, cb.repo, *content.Path, nil)
+	if errDownload != nil {
+		return nil, errDownload
 	}
 	defer rc.Close()
-	var b, err_read = ioutil.ReadAll(rc)
-	if err_read != nil {
-		return nil, err_read
+	var b, errRead = ioutil.ReadAll(rc)
+	if errRead != nil {
+		return nil, errRead
 	}
 	sha := calculateGitSHA1(b)
 	if *content.SHA == hex.EncodeToString(sha) {

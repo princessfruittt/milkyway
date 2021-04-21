@@ -280,7 +280,6 @@ func (ar AnsibleRole) parseRole() map[string]tosca.NodeType {
 			Metadata: map[string]string{"author": m.Meta.Author, "min_ansible_version": m.Meta.MinAnsibleVersion}},
 		Properties:   make(map[string]definitions.PropertyDefinition),
 		Attributes:   nil,
-		Requirements: nil,
 		Capabilities: nil,
 		Interfaces:   nil,
 		Artifacts:    nil,

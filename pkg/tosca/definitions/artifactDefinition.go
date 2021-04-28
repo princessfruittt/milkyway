@@ -33,7 +33,7 @@ type ArtifactDefinition struct {
 	Description       string                        `yaml:"description,omitempty" json:"description,omitempty"`
 	Repository        string                        `yaml:"repository,omitempty" json:"repository,omitempty"`
 	DeployPath        string                        `yaml:"deploy_path,omitempty" json:"deploy_path,omitempty"`
-	ArtifactVersion   string                        `yaml:"artifact_version,omitempty" json:"artifact_version,omitempty"`
+	ArtifactVersion   string                        `yaml:"version,omitempty" json:"version,omitempty"`
 	Checksum          string                        `yaml:"checksum,omitempty" json:"checksum,omitempty"`
 	ChecksumAlgorithm string                        `yaml:"checksum_algorithm,omitempty" json:"checksum_algorithm,omitempty"`
 	Properties        map[string]PropertyDefinition `yaml:"properties,omitempty" json:"properties,omitempty"`

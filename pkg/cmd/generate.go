@@ -218,7 +218,7 @@ func (b *cmdsBuilder) newGenerateCmd() *generateCmd {
 }
 func GitHubConnect(path string) (connection GithubConnection) {
 	connection = *NewConnectionBuilder(path)
-	err := connection.getContents("", "")
+	err := connection.getContents("", "", "")
 	if err != nil {
 		log.Fatal(err)
 	} else if NilFields(connection.ansibleRole) {

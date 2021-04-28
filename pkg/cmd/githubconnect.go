@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
+	"fmt"
 	"github.com/google/go-github/v34/github"
 	"io/ioutil"
 	"log"
@@ -32,8 +33,49 @@ func NewConnectionBuilder(urlPath string) *GithubConnection {
 		ansibleRole: AnsibleRole{},
 	}
 }
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
 
-func (cb *GithubConnection) getContents(path string, parentDirName string) (err error) {
+// func getContents get Ansible Role info from GitHub repository
+// look only into role directories such as meta, defaults, tasks etc.
+func (cb *GithubConnection) getContents(path string, parentDirName string, tempDir string) (err error) {
+	_, directoryContent, _, err := cb.client.Repositories.GetContents(cb.ctx, cb.owner, cb.repo, path, nil)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range directoryContent {
+		switch *c.Type {
+		case "dir":
+			switch *c.Path {
+			case "defaults", "handlers", "meta", "tasks", "vars":
+				cb.parseFile(path, *c.Path)
+			}
+		case "templates", "files":
+			var dirName = filepath.Join(path, *c.Path)
+			var name = ""
+			switch dirName {
+			case "templates", "files":
+				name, err := ioutil.TempDir("", dirName)
+				if err != nil {
+					log.Print(err)
+				}
+				tempDir = dirName
+				fmt.Println("Temp dir name:", name)
+			}
+
+			err := cb.getContents(filepath.Join(path, *c.Path), *c.Name, name)
+			if err != nil {
+				log.Print(err)
+			}
+		}
+	}
+	return nil
+}
+func (cb *GithubConnection) parseFile(path string, parentDirName string) (err error) {
 	_, directoryContent, _, err := cb.client.Repositories.GetContents(cb.ctx, cb.owner, cb.repo, path, nil)
 	if err != nil {
 		return err
@@ -42,37 +84,28 @@ func (cb *GithubConnection) getContents(path string, parentDirName string) (err 
 	for _, c := range directoryContent {
 		switch *c.Type {
 		case "file":
-			switch parentDirName {
-			case "defaults", "templates", "handlers", "meta", "tasks", "vars", "files", "library":
-				if *c.Name == "main.yaml" || *c.Name == "main.yml" {
-					b, err := downloadContents(cb, c)
-					if err != nil {
-						return err
-					} else {
-						ra := reflect.ValueOf(&cb.ansibleRole).Elem()
-						ra.FieldByName(strings.Title(parentDirName) + "Main").SetBytes(b)
-					}
+
+			if *c.Name == "main.yaml" || *c.Name == "main.yml" {
+				b, err := downloadContents(cb, c)
+				if err != nil {
+					return err
 				} else {
-					b, err := downloadContents(cb, c)
-					if err != nil {
-						return err
-					} else {
-						ra := reflect.ValueOf(&cb.ansibleRole).Elem()
-						ra.FieldByName(strings.Title(parentDirName)).SetBytes(b)
-					}
+					ra := reflect.ValueOf(&cb.ansibleRole).Elem()
+					ra.FieldByName(strings.Title(parentDirName) + "Main").SetBytes(b)
+				}
+			} else {
+				b, err := downloadContents(cb, c)
+				if err != nil {
+					return err
+				} else {
+					ra := reflect.ValueOf(&cb.ansibleRole).Elem()
+					ra.FieldByName(strings.Title(parentDirName)).SetBytes(b)
 				}
 			}
 
-		case "dir":
-			err := cb.getContents(filepath.Join(path, *c.Path), *c.Name)
-			if err != nil {
-				log.Print(err)
-			}
 		}
 	}
-	return nil
 }
-
 func downloadContents(cb *GithubConnection, content *github.RepositoryContent) ([]byte, error) {
 	rc, _, _, errDownload := cb.client.Repositories.DownloadContentsWithMeta(cb.ctx, cb.owner, cb.repo, *content.Path, nil)
 	if errDownload != nil {

@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/tliron/kutil/terminal"
 	"gopkg.in/yaml.v3"
 	"log"
-	"milkyway/pkg/tosca"
-	"milkyway/pkg/tosca/definitions"
+	tosca "milkyway/pkg/tosca"
+	tosca2 "milkyway/pkg/tosca/grammars/tosca_v2_0"
 	"net/url"
 	"reflect"
 )
@@ -209,8 +210,9 @@ type Datayaml struct {
 func (b *cmdsBuilder) newGenerateCmd() *generateCmd {
 	cc := &generateCmd{}
 	cmd := &cobra.Command{
-		Use:   "generate",
-		Short: "generate tosca types",
+		Use:   "generate [[Ansible Role PATH or Github URL]] [flags]",
+		Short: "generates TOSCA node type",
+		Long:  "Generates valid tosca.node.type from Ansible Role. ",
 		Run:   cc.generateType,
 	}
 	cc.baseBuilderCmd = b.newBuilderCmd(cmd)
@@ -230,41 +232,49 @@ func GitHubConnect(path string) (connection GithubConnection) {
 	return
 }
 func (c *generateCmd) generateType(cmd *cobra.Command, args []string) {
-	u, err := url.Parse(c.roleURL)
-	if err != nil || len(u.Path) < 3 {
-		log.Fatal(err)
+	if len(c.rolePath) == 0 && len(c.roleURL) == 0 {
+		log.Fatal("Please, fill rolePath or roleURL flag ")
+	} else {
+		var generatedType *tosca2.NodeType
+		if len(c.roleURL) > 0 {
+			u, err := url.Parse(c.roleURL)
+			if err != nil || len(u.Path) < 3 {
+				log.Fatal(err)
+			}
+			con := GitHubConnect(u.Path)
+			generatedType = con.ansibleRole.parseRole()
+		} else if len(c.rolePath) > 0 {
+			walk(c.rolePath)
+			//log.Print(ansibleRoleMeta)
+			testrole := AnsibleRole{
+				TemplatesMain: nil,
+				TasksMain:     nil,
+				VarsMain:      nil,
+				DefaultsMain:  []byte(defMain),
+				HandlersMain:  nil,
+				MetaMain:      nil,
+				FilesMain:     nil,
+				Templates:     nil,
+				Tasks:         nil,
+				Vars:          nil,
+				Defaults:      nil,
+				Handlers:      nil,
+				Meta:          []byte(metaMain),
+				Files:         nil,
+				Version:       "",
+			}
+			generatedType = testrole.parseRole()
+		}
+		//generatedType.Properties["role_name"].Default.Value = testrole.Meta.RoleName
+		//m["ansible.role."+testrole.Meta.RoleName] = generatedType
+		//log.Printf("--- m:\n%v\n\n", string(connection.ansibleRole.MetaMain))
+		b, _ := yaml.Marshal(generatedType)
+		log.Println(string(b))
+		//formatpkg.Print(string(b), "yaml", terminal.Stdout, true, true)
 	}
-	con := GitHubConnect(u.Path)
-	generatedType := con.ansibleRole.parseRole()
-
-	//log.Print(ansibleRoleMeta)
-	//testrole := AnsibleRole{
-	//	TemplatesMain: nil,
-	//	TasksMain:     nil,
-	//	VarsMain:      nil,
-	//	DefaultsMain:  []byte(defMain),
-	//	HandlersMain:  nil,
-	//	MetaMain:      nil,
-	//	FilesMain:     nil,
-	//	Templates:     nil,
-	//	Tasks:         nil,
-	//	Vars:          nil,
-	//	Defaults:      nil,
-	//	Handlers:      nil,
-	//	Meta:          []byte(metaMain),
-	//	Files:         nil,
-	//	Version:       "",
-	//}
-	//generatedType := testrole.parseRole()
-	//generatedType.Properties["role_name"].Default.Value = testrole.Meta.RoleName
-	//m["ansible.role."+testrole.Meta.RoleName] = generatedType
-	//log.Printf("--- m:\n%v\n\n", string(connection.ansibleRole.MetaMain))
-	b, _ := yaml.Marshal(generatedType)
-	log.Println(string(b))
-
 }
 
-func (ar AnsibleRole) parseRole() map[string]tosca.NodeType {
+func (ar AnsibleRole) parseRole() *tosca2.NodeType {
 	m := &ansibleRoleMeta{}
 	errYaml := yaml.Unmarshal(ar.MetaMain, m)
 
@@ -273,29 +283,39 @@ func (ar AnsibleRole) parseRole() map[string]tosca.NodeType {
 	if errYaml != nil || errYaml2 != nil {
 		log.Fatal(errYaml)
 	}
+	stylist := terminal.Stylize
+	//if problemsFormat != "" {
+	//	stylist = terminal.NewStylist(false)
+	//}
+	templateContext := tosca.NewContext(stylist, tosca.NewQuirks())
+	template := tosca2.NewNodeType(templateContext)
+	template.Type.Version = &tosca2.Version{
+		CanonicalString: "",
+		OriginalString:  "",
+		Comparer:        "",
+		Major:           0,
+		Minor:           0,
+		Fix:             0,
+		Qualifier:       "",
+		Build:           0,
+	}
+	template.Name = "ansible.role." + m.Meta.RoleName
+	template.Description = &m.Meta.Description
+	template.Metadata = map[string]string{"author": m.Meta.Author, "min_ansible_version": m.Meta.MinAnsibleVersion}
+	template.AddProperty("role_name", tosca2.PropertyDefinition{
+		Required: &[]bool{true}[0], AttributeDefinition: &tosca2.AttributeDefinition{Name: "RoleName", DataTypeName: sPtr("string")},
+		//Default: m.Meta.RoleName},
+	})
+	//for key, value := range someStruct {
+	//	template.AddProperty(key,
+	//		tosca2.PropertyDefinition{
+	//			Required: &[]bool{true}[0],
+	//			AttributeDefinition: &tosca2.AttributeDefinition{ DataTypeName: sPtr("string")}})
+	//Default: value}})
+	return template
 
-	nt := tosca.NodeType{
-		Type: tosca.Type{
-			Base: tosca.Node, DerivedFrom: "tosca.nodes.Root", Version: "0.0", Description: m.Meta.Description,
-			Metadata: map[string]string{"author": m.Meta.Author, "min_ansible_version": m.Meta.MinAnsibleVersion}},
-		Properties:   make(map[string]definitions.PropertyDefinition),
-		Attributes:   nil,
-		Capabilities: nil,
-		Interfaces:   nil,
-		Artifacts:    nil,
-	}
-	nt.AddProperty("role_name",
-		definitions.PropertyDefinition{
-			Type: ToscaString, Description: "RoleName", Required: &[]bool{true}[0],
-			Default: m.Meta.RoleName})
-	for key, value := range someStruct {
-		nt.AddProperty(key,
-			definitions.PropertyDefinition{
-				Type: ToscaString, Required: new(bool),
-				Default: value})
-	}
-	return map[string]tosca.NodeType{"ansible.role." + m.Meta.RoleName: nt}
 }
+func sPtr(s string) *string { return &s }
 func NilFields(x AnsibleRole) bool {
 	rv := reflect.ValueOf(&x).Elem()
 

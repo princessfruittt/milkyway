@@ -81,11 +81,11 @@ func (b *cmdsBuilder) newCommonCMD() *commonCmd {
 	cc.baseBuilderCmd = b.newBuilderCmd(&cobra.Command{
 		Use:                   "milkyway [flags]",
 		DisableFlagsInUseLine: true,
-		Short:                 "milkyway generate TOSCA node types from Ansible role",
-		Long:                  "milkyway is the main command, used to generate TOSCA node types from Ansible Galaxy role",
+		Short:                 "milkyway generates TOSCA node types from Ansible role",
+		Long: `# "milkyway is the main command, used to generate TOSCA node types from Ansible Galaxy role.
+				"Apply the generated output tosca.node.Type in TOSCA orchestrator"`,
 		Example: `
-		# Apply the generated output tosca.node.Type in TOSCA orchestrator
-		milkyway -u "https://github.com/geerlingguy/ansible-role-nginx"`,
+		# milkyway -u "https://github.com/geerlingguy/ansible-role-nginx"`,
 		Run: func(cmd *cobra.Command, args []string) {
 			defer cc.timeTrack(time.Now(), "Total")
 			c := result{"my result"}
@@ -97,12 +97,14 @@ func (b *cmdsBuilder) newCommonCMD() *commonCmd {
 }
 
 type builderCommon struct {
-	roleURL string
-	quiet   bool
+	roleURL  string
+	rolePath string
+	quiet    bool
 }
 
 func (cc *builderCommon) handleFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&cc.roleURL, "roleURL", "u", "", "Ansible galaxy GitHub URL e.g. https://github.com/gantsign/ansible-role-golang")
+	cmd.Flags().StringVarP(&cc.rolePath, "rolePath", "p", "", "path to the Directory with role e.g. https://github.com/gantsign/ansible-role-golang")
 }
 
 func (b *cmdsBuilder) newBuilderCmd(cmd *cobra.Command) *baseBuilderCmd {

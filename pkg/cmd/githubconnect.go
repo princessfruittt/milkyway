@@ -84,7 +84,6 @@ func (cb *GithubConnection) parseFile(path string, parentDirName string) (err er
 	for _, c := range directoryContent {
 		switch *c.Type {
 		case "file":
-
 			if *c.Name == "main.yaml" || *c.Name == "main.yml" {
 				b, err := downloadContents(cb, c)
 				if err != nil {
@@ -105,6 +104,7 @@ func (cb *GithubConnection) parseFile(path string, parentDirName string) (err er
 
 		}
 	}
+	return
 }
 func downloadContents(cb *GithubConnection, content *github.RepositoryContent) ([]byte, error) {
 	rc, _, _, errDownload := cb.client.Repositories.DownloadContentsWithMeta(cb.ctx, cb.owner, cb.repo, *content.Path, nil)
@@ -122,7 +122,7 @@ func downloadContents(cb *GithubConnection, content *github.RepositoryContent) (
 		return b, nil
 	} else {
 		return nil, &cmdError{
-			s:         "invalid SHA, retry download for a file: " + *content.Path,
+			s:         "Invalid SHA, retry download for a file: " + *content.Path,
 			userError: false,
 		}
 	}

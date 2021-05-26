@@ -33,13 +33,8 @@ func NewConnectionBuilder(urlPath string) *GithubConnection {
 		ansibleRole: AnsibleRole{},
 	}
 }
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
 
-// func getContents get Ansible Role info from GitHub repository
+// func getContents get Ansible role info from GitHub repository
 // look only into role directories such as meta, defaults, tasks etc.
 func (cb *GithubConnection) getContents(path string, parentDirName string, tempDir string) (err error) {
 	_, directoryContent, _, err := cb.client.Repositories.GetContents(cb.ctx, cb.owner, cb.repo, path, nil)

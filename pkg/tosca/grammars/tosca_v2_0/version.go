@@ -25,15 +25,15 @@ var VersionRE = regexp.MustCompile(
 //
 
 type Version struct {
-	CanonicalString string `json:"$string" yaml:"$string"`
-	OriginalString  string `json:"$originalString" yaml:"$originalString"`
-	Comparer        string `json:"$comparer" yaml:"$comparer"`
+	CanonicalString string `json:"$string" yaml:"$string,omitempty"`
+	OriginalString  string `json:"$originalString" yaml:"$originalString,omitempty"`
+	Comparer        string `json:"$comparer" yaml:"$comparer,omitempty"`
 
-	Major     uint32 `json:"major" yaml:"major"`
-	Minor     uint32 `json:"minor" yaml:"minor"`
-	Fix       uint32 `json:"fix" yaml:"fix"`
-	Qualifier string `json:"qualifier" yaml:"qualifier"`
-	Build     uint32 `json:"build" yaml:"build"`
+	Major     uint32 `json:"major" yaml:"major,omitempty"`
+	Minor     uint32 `json:"minor" yaml:"minor,omitempty"`
+	Fix       uint32 `json:"fix" yaml:"fix,omitempty"`
+	Qualifier string `json:"qualifier" yaml:"qualifier,omitempty"`
+	Build     uint32 `json:"build" yaml:"build,omitempty"`
 }
 
 // tosca.Reader signature

@@ -19,10 +19,10 @@ type Type struct {
 	*Entity `json:"-" yaml:"-"`
 	Name    string `namespace:""`
 
-	ParentName  *string  `read:"derived_from"`
-	Version     *Version `read:"version,version"`
-	Metadata    Metadata `read:"metadata,!Metadata"`
-	Description *string  `read:"description"`
+	ParentName  *string  `read:"derived_from" yaml:"derived_from"`
+	Version     *Version `read:"version,version" yaml:"version,omitempty"`
+	Metadata    Metadata `read:"metadata,!Metadata" yaml:"metadata,omitempty"`
+	Description *string  `read:"description" yaml:"description,omitempty"`
 
 	metadataLock sync.RWMutex
 }

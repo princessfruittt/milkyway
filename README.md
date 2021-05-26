@@ -51,7 +51,7 @@ Program generates CSAR archive with below structure:
 |   └──main.yaml
 ```
 # Realy quick start :stars:
-* [install go] (https://golang.org/doc/install)
+* [install go](https://golang.org/doc/install)
 ```
 git clone https://github.com/princessfruittt/milkyway.git
 cd milkyway
@@ -61,6 +61,7 @@ go install
 **contacts:**
 
 :iphone: telegram: princessfruittt
+
 :mailbox: email: princessfruittt@yandex.ru
 
 # License

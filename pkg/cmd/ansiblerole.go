@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 )
 
@@ -73,10 +74,22 @@ func newRole() *role {
 	}
 }
 
+var dirWithMain = []string{"defaults", "meta", "tasks", "vars"}
+
 // GetRoleFromPath return struct with filled AnsibleRole fields from absolute path input.
 func GetRoleFromPath(rolePath string) AnsibleRole {
 	r := newRole()
 	e := filepath.WalkDir(rolePath, func(path string, de fs.DirEntry, err error) error {
+		if filepath.IsAbs(rolePath) == false {
+			newPath, err := filepath.Abs(rolePath)
+			if err != nil {
+				return err
+			}
+			rolePath = newPath
+		}
+		if err != nil {
+			return err
+		}
 		switch de.IsDir() {
 		case true:
 			switch de.Name() {
@@ -106,8 +119,11 @@ func GetRoleFromPath(rolePath string) AnsibleRole {
 
 func getRoleContent(rolePath string, parentDirName string, r *role) error {
 	e := filepath.WalkDir(rolePath, func(path string, de fs.DirEntry, err error) error {
-		if de.IsDir() == false {
+		i := sort.Search(len(dirWithMain), func(i int) bool { return dirWithMain[i] >= de.Name() })
+		if de.IsDir() == true && i < len(dirWithMain) && dirWithMain[i] == de.Name() {
 			//By default Ansible will look in each directory within a role for a main.yml file for relevant content (also main.yaml and main)
+
+		} else {
 			n := strings.ToLower(de.Name())
 			content, err := os.ReadFile(filepath.Join(rolePath, de.Name()))
 			if err != nil {

@@ -18,26 +18,30 @@ import (
 //
 
 type Unit struct {
-	*Entity `name:"unit"`
+	*Entity `name:"unit" yaml:",inline"`
 
-	ToscaDefinitionsVersion *string           `read:"tosca_definitions_version" require:""`
-	Profile                 *string           `read:"profile"` // introduced in TOSCA 1.2 as "namespace", renamed in TOSCA 2.0
-	Metadata                Metadata          `read:"metadata,!Metadata"`
-	Description             *string           `read:"description"`
-	Repositories            Repositories      `read:"repositories,Repository"`
-	Imports                 Imports           `read:"imports,[]Import"`
-	ArtifactTypes           ArtifactTypes     `read:"artifact_types,ArtifactType" hierarchy:""`
-	CapabilityTypes         CapabilityTypes   `read:"capability_types,CapabilityType" hierarchy:""`
-	DataTypes               DataTypes         `read:"data_types,DataType" hierarchy:""`
-	GroupTypes              GroupTypes        `read:"group_types,GroupType" hierarchy:""`
-	InterfaceTypes          InterfaceTypes    `read:"interface_types,InterfaceType" hierarchy:""`
-	NodeTypes               NodeTypes         `read:"node_types,NodeType" hierarchy:""`
-	PolicyTypes             PolicyTypes       `read:"policy_types,PolicyType" hierarchy:""`
-	RelationshipTypes       RelationshipTypes `read:"relationship_types,RelationshipType" hierarchy:""`
+	ToscaDefinitionsVersion *string           `read:"tosca_definitions_version" require:"" yaml:"tosca_definitions_version"`
+	Profile                 *string           `read:"profile" yaml:"profile,omitempty"` // introduced in TOSCA 1.2 as "namespace", renamed in TOSCA 2.0
+	Metadata                Metadata          `read:"metadata,!Metadata" yaml:"metadata,omitempty"`
+	Description             *string           `read:"description" yaml:"description,omitempty"`
+	Repositories            Repositories      `read:"repositories,Repository" yaml:"repositories,omitempty"`
+	Imports                 Imports           `read:"imports,[]Import" yaml:"imports,omitempty"`
+	ArtifactTypes           ArtifactTypes     `read:"artifact_types,ArtifactType" hierarchy:"" yaml:"artifact_types,omitempty"`
+	CapabilityTypes         CapabilityTypes   `read:"capability_types,CapabilityType" hierarchy:"" yaml:"capability_types,omitempty"`
+	DataTypes               DataTypes         `read:"data_types,DataType" hierarchy:"" yaml:"data_types,omitempty"`
+	GroupTypes              GroupTypes        `read:"group_types,GroupType" hierarchy:"" yaml:"group_types,omitempty"`
+	InterfaceTypes          InterfaceTypes    `read:"interface_types,InterfaceType" hierarchy:"" yaml:"interface_types,omitempty"`
+	NodeTypes               MapNodeTypes      `read:"node_types,NodeType" hierarchy:"" yaml:"node_types,omitempty"`
+	PolicyTypes             PolicyTypes       `read:"policy_types,PolicyType" hierarchy:"" yaml:"policy_types,omitempty"`
+	RelationshipTypes       RelationshipTypes `read:"relationship_types,RelationshipType" hierarchy:"" yaml:"relationship_types,omitempty"`
 }
 
 func NewUnit(context *tosca.Context) *Unit {
 	return &Unit{Entity: NewEntity(context)}
+}
+
+func (self Unit) AddArtifactType(aType ArtifactType) {
+	self.ArtifactTypes = append(self.ArtifactTypes, &aType)
 }
 
 // tosca.Reader signature

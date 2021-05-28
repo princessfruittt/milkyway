@@ -18,13 +18,31 @@ import (
 //
 
 type ServiceTemplate struct {
-	*Unit `name:"service template"`
+	*Unit `name:"service template" yaml:",inline"`
 
 	TopologyTemplate *TopologyTemplate `read:"topology_template,TopologyTemplate"`
 }
 
 func NewServiceTemplate(context *tosca.Context) *ServiceTemplate {
 	return &ServiceTemplate{Unit: NewUnit(context)}
+}
+
+func (self ServiceTemplate) AddNodeType(k string, v NodeType) {
+	self.Unit.NodeTypes[k] = &v
+}
+
+func (self ServiceTemplate) AddImport(imp *Import) {
+	temp := []*Import{imp}
+	self.Unit.Imports = append(self.Unit.Imports, temp...)
+}
+
+func (self ServiceTemplate) AddDefinitionVersion() {
+	v := "tosca_2_0"
+	self.Unit.ToscaDefinitionsVersion = &v
+}
+
+func (self ServiceTemplate) AddUnit(u Unit) {
+	self.Unit = &u
 }
 
 // tosca.Reader signature

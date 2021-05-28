@@ -17,7 +17,7 @@ import (
 //
 
 type TopologyTemplate struct {
-	*Entity `name:"topology template"`
+	*Entity `name:"topology template" yaml:",inline"`
 
 	Description           *string               `read:"description"`
 	NodeTemplates         NodeTemplates         `read:"node_templates,NodeTemplate"`

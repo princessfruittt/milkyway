@@ -21,18 +21,23 @@ import (
 //
 
 type Import struct {
-	*Entity `name:"import" json:"-" yaml:"-"`
+	*Entity `name:"import" json:"-" yaml:",inline"`
 
-	URL            *string `read:"url" require:""` // renamed in TOSCA 2.0
-	RepositoryName *string `read:"repository"`
-	Namespace      *string `read:"namespace"` // renamed in TOSCA 2.0
-	NamespaceURI   *string /// removed in TOSCA 2.0
+	URL            *string `read:"url" require:"" yaml:"url"` // renamed in TOSCA 2.0
+	RepositoryName *string `read:"repository" yaml:"repository_name,omitempty"`
+	Namespace      *string `read:"namespace" yaml:"namespace,omitempty"` // renamed in TOSCA 2.0
+	NamespaceURI   *string `yaml:"namespace_uri,omitempty"`              /// removed in TOSCA 2.0
 
 	Repository *Repository `lookup:"repository,RepositoryName" json:"-" yaml:"-"`
 }
 
 func NewImport(context *tosca.Context) *Import {
 	return &Import{Entity: NewEntity(context)}
+}
+func NewImportValue(context *tosca.Context, v interface{}) *Import {
+	entity := NewEntity(context)
+	entity.AddValue(v)
+	return &Import{Entity: entity}
 }
 
 // tosca.Reader signature

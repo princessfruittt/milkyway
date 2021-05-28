@@ -20,7 +20,7 @@ import (
 //
 
 type Value struct {
-	*Entity `name:"value"`
+	*Entity `name:"value" yaml:",inline"`
 	Name    string
 
 	ConstraintClauses ConstraintClauses

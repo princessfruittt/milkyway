@@ -76,6 +76,7 @@ func (self *NodeType) Inherit() {
 //
 
 type NodeTypes []*NodeType
+type MapNodeTypes map[string]*NodeType
 
 func (self NodeTypes) IsCompatible(nodeType *NodeType) bool {
 	for _, baseNodeType := range self {

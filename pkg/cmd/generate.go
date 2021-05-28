@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/iancoleman/strcase"
 	"github.com/spf13/cobra"
 	"github.com/tliron/kutil/terminal"
@@ -16,19 +17,12 @@ type generateCmd struct {
 	*baseBuilderCmd
 }
 
-const (
-	ToscaString    = "string"
-	ToscaInteger   = "integer"
-	ToscaFloat     = "float"
-	ToscaBool      = "boolean"
-	ToscaTimestamp = "timestamp"
-	ToscaNull      = "null"
-)
+var importsList = []string{"relationships.yaml", "interfaces.yaml", "nodes.yaml", "artifacts.yaml"}
 
 func (b *cmdsBuilder) newGenerateCmd() *generateCmd {
 	cc := &generateCmd{}
 	cmd := &cobra.Command{
-		Use:   "generate [[Ansible role PATH or Github URL]] [flags]",
+		Use:   "generate",
 		Short: "generates TOSCA node type",
 		Long:  "Generates valid tosca.node.type from Ansible role. ",
 		Run:   cc.generateType,
@@ -51,9 +45,9 @@ func GitHubConnect(path string) (connection GithubConnection) {
 }
 func (c *generateCmd) generateType(cmd *cobra.Command, args []string) {
 	if len(c.rolePath) == 0 && len(c.roleURL) == 0 {
-		log.Fatal("Please, fill rolePath or roleURL flag ")
+		log.Fatal("Please, fill -rolePath or -roleURL flag (i.e., generate -p path_to_role).")
 	} else {
-		var generatedType *tosca2.NodeType
+		var generatedType *tosca2.ServiceTemplate
 		if len(c.roleURL) > 0 {
 			u, err := url.Parse(c.roleURL)
 			if err != nil || len(u.Path) < 3 {
@@ -66,11 +60,11 @@ func (c *generateCmd) generateType(cmd *cobra.Command, args []string) {
 			generatedType = ansibleRole.transform()
 		}
 		b, _ := yaml.Marshal(generatedType)
-		log.Println(string(b))
+		fmt.Println(string(b))
 	}
 }
 
-func (ar AnsibleRole) transform() *tosca2.NodeType {
+func (ar AnsibleRole) transform() *tosca2.ServiceTemplate {
 	m := &ansibleRoleMeta{}
 	errYaml := yaml.Unmarshal(ar.MetaMain, m)
 
@@ -84,6 +78,7 @@ func (ar AnsibleRole) transform() *tosca2.NodeType {
 	//	stylist = terminal.NewStylist(false)
 	//}
 	templateContext := tosca.NewContext(stylist, tosca.NewQuirks())
+	newTemplate := tosca2.NewServiceTemplate(templateContext)
 	newNodeType := tosca2.NewNodeType(templateContext)
 	softwareComponent := tosca2.NewNodeType(templateContext)
 	softwareComponent.Name = "tosca.nodes.SoftwareComponent"
@@ -105,13 +100,22 @@ func (ar AnsibleRole) transform() *tosca2.NodeType {
 		Required: &[]bool{true}[0], AttributeDefinition: &tosca2.AttributeDefinition{Name: "RoleName", DataTypeName: sPtr("string")},
 		//Default: m.Meta.RoleName},
 	})
-	//for key, value := range someStruct {
-	//	newNodeType.AddProperty(key,
-	//		tosca2.PropertyDefinition{
-	//			Required: &[]bool{true}[0],
-	//			AttributeDefinition: &tosca2.AttributeDefinition{ DataTypeName: sPtr("string")}})
-	//Default: value}})
-	return newNodeType
+	for key := range someStruct {
+		newNodeType.AddProperty(key,
+			tosca2.PropertyDefinition{
+				Required:            &[]bool{true}[0],
+				AttributeDefinition: &tosca2.AttributeDefinition{DataTypeName: sPtr("string")}})
+	}
+
+	for _, s := range importsList {
+		s += "normativetypes/2.0/"
+		newTemplate.AddImport(&tosca2.Import{
+			URL: &s})
+	}
+	newTemplate.Unit.NodeTypes = map[string]*tosca2.NodeType{}
+	newTemplate.AddNodeType(newNodeType.Name, *newNodeType)
+	newTemplate.AddDefinitionVersion()
+	return newTemplate
 
 }
 func sPtr(s string) *string { return &s }

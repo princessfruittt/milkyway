@@ -21,11 +21,12 @@ type AttributeDefinition struct {
 	Name     string    `yaml:"-"`
 	DataType *DataType `lookup:"type,DataTypeName" json:"-" yaml:"-"`
 
-	DataTypeName      *string           `read:"type" yaml:"type"` // required only if cannot be inherited or discovered
+	DataTypeName      *string           `read:"type" yaml:"type,omitempty"` // required only if cannot be inherited or discovered
 	Description       *string           `read:"description" yaml:"description,omitempty"`
-	Default           *Value            `read:"default,Value" yaml:"default,omitempty"`
+	Default           *Value            `read:"default,Value" yaml:"-"`
+	DefaultString     interface{}       `read:"default" yaml:"default"`
 	Status            *string           `read:"status,omitempty" yaml:"status,omitempty"`
-	ConstraintClauses ConstraintClauses `read:"constraints,[]ConstraintClause" yaml:"constraints,omitempty"`
+	ConstraintClauses ConstraintClauses `read:"constraints,[]ConstraintClause" yaml:"-"`
 	KeySchema         *Schema           `read:"key_schema,Schema" yaml:"key_schema,omitempty"`     // introduced in TOSCA 1.3
 	EntrySchema       *Schema           `read:"entry_schema,Schema" yaml:"entry_schema,omitempty"` // required if list or map
 	Metadata          Metadata          `read:"metadata,Metadata" yaml:"metadata,omitempty"`       // introduced in TOSCA 1.3

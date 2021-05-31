@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/goccy/go-yaml"
 	"github.com/iancoleman/strcase"
 	"github.com/spf13/cobra"
 	"github.com/tliron/kutil/terminal"
-	"gopkg.in/yaml.v3"
 	"log"
 	tosca "milkyway/pkg/tosca"
 	tosca2 "milkyway/pkg/tosca/grammars/tosca_v2_0"
 	"net/url"
+	"path/filepath"
 	"reflect"
 )
 
@@ -59,7 +60,10 @@ func (c *generateCmd) generateType(cmd *cobra.Command, args []string) {
 			ansibleRole := GetRoleFromPath(c.rolePath)
 			generatedType = ansibleRole.transform()
 		}
-		b, _ := yaml.Marshal(generatedType)
+		b, err := yaml.Marshal(generatedType)
+		if err != nil {
+			log.Fatal(err)
+		}
 		fmt.Println(string(b))
 	}
 }
@@ -80,37 +84,37 @@ func (ar AnsibleRole) transform() *tosca2.ServiceTemplate {
 	templateContext := tosca.NewContext(stylist, tosca.NewQuirks())
 	newTemplate := tosca2.NewServiceTemplate(templateContext)
 	newNodeType := tosca2.NewNodeType(templateContext)
-	softwareComponent := tosca2.NewNodeType(templateContext)
-	softwareComponent.Name = "tosca.nodes.SoftwareComponent"
-	newNodeType.Type.Version = &tosca2.Version{
-		CanonicalString: "",
-		OriginalString:  "",
-		Comparer:        "",
-		Major:           0,
-		Minor:           0,
-		Fix:             0,
-		Qualifier:       "",
-		Build:           0,
-	}
+	//newNodeType.Type.Version = &tosca2.Version{
+	//	CanonicalString: "",
+	//	OriginalString:  "",
+	//	Comparer:        "",
+	//	Major:           0,
+	//	Minor:           0,
+	//	Fix:             0,
+	//	Qualifier:       "",
+	//	Build:           0,
+	//}
 	newNodeType.Name = "ansible.nodes." + strcase.ToCamel(m.Meta.RoleName)
-	newNodeType.Parent = softwareComponent
+	pn := "tosca.nodes.SoftwareComponent"
+	newNodeType.ParentName = &pn
 	newNodeType.Description = &m.Meta.Description
-	newNodeType.Metadata = map[string]string{"author": m.Meta.Author, "min_ansible_version": m.Meta.MinAnsibleVersion}
-	newNodeType.AddProperty("role_name", tosca2.PropertyDefinition{
-		Required: &[]bool{true}[0], AttributeDefinition: &tosca2.AttributeDefinition{Name: "RoleName", DataTypeName: sPtr("string")},
-		//Default: m.Meta.RoleName},
-	})
-	for key := range someStruct {
-		newNodeType.AddProperty(key,
-			tosca2.PropertyDefinition{
-				Required:            &[]bool{true}[0],
-				AttributeDefinition: &tosca2.AttributeDefinition{DataTypeName: sPtr("string")}})
-	}
+	newNodeType.Metadata = map[string]string{"author": m.Meta.Author, "min_ansible_version": m.Meta.MinAnsibleVersion, "role_name": m.Meta.RoleName}
+	for k, v := range someStruct {
+		tempA := tosca2.AttributeDefinition{DataTypeName: sPtr("string"),
+			DefaultString: v,
+			Default:       &tosca2.Value{Entity: &tosca2.Entity{Context: &tosca.Context{Data: v}}}}
 
+		newNodeType.AddProperty(k,
+			tosca2.PropertyDefinition{
+				Required:            new(bool),
+				AttributeDefinition: &tempA,
+			})
+	}
+	//&[]bool{true}[0]
 	for _, s := range importsList {
-		s += "normativetypes/2.0/"
+		tempS := filepath.Join("normativetypes/2.0/", s)
 		newTemplate.AddImport(&tosca2.Import{
-			URL: &s})
+			URL: &tempS})
 	}
 	newTemplate.Unit.NodeTypes = map[string]*tosca2.NodeType{}
 	newTemplate.AddNodeType(newNodeType.Name, *newNodeType)

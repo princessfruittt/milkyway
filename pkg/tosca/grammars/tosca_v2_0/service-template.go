@@ -20,7 +20,7 @@ import (
 type ServiceTemplate struct {
 	*Unit `name:"service template" yaml:",inline"`
 
-	TopologyTemplate *TopologyTemplate `read:"topology_template,TopologyTemplate"`
+	TopologyTemplate *TopologyTemplate `read:"topology_template,TopologyTemplate" yaml:"topology_template,omitempty"`
 }
 
 func NewServiceTemplate(context *tosca.Context) *ServiceTemplate {

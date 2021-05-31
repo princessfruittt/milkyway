@@ -15,7 +15,7 @@ import (
 //
 
 type PropertyDefinition struct {
-	*AttributeDefinition `name:"property definition" yaml:"-"`
+	*AttributeDefinition `name:"property definition" yaml:",inline"`
 
 	Required          *bool             `read:"required" yaml:"required"`
 	ConstraintClauses ConstraintClauses `read:"constraints,[]ConstraintClause"  yaml:"constraints,omitempty"`

@@ -17,7 +17,7 @@ import (
 
 type Type struct {
 	*Entity `json:"-" yaml:"-"`
-	Name    string `namespace:""`
+	Name    string `namespace:"" yaml:"-"`
 
 	ParentName  *string  `read:"derived_from" yaml:"derived_from"`
 	Version     *Version `read:"version,version" yaml:"version,omitempty"`

@@ -20,11 +20,11 @@ import (
 //
 
 type Value struct {
-	*Entity `name:"value" yaml:",inline"`
-	Name    string
+	*Entity `name:"value" yaml:"-"`
+	Name    string `yaml:"-"`
 
-	ConstraintClauses ConstraintClauses
-	Description       *string
+	ConstraintClauses ConstraintClauses `yaml:"-"`
+	Description       *string           `yaml:"-"`
 
 	DataType    *DataType           `traverse:"ignore" json:"-" yaml:"-"`
 	Information *normal.Information `traverse:"ignore" json:"-" yaml:"-"`

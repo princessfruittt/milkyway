@@ -50,20 +50,20 @@ func GetCanonicalName(entityPtr EntityPtr) string {
 //
 
 type Context struct {
-	Parent             *Context
-	Name               string
-	Path               ard.Path
-	URL                urlpkg.URL
-	Data               ard.Value
-	Locator            ard.Locator
-	CanonicalNamespace *string
-	Namespace          *Namespace
-	ScriptletNamespace *ScriptletNamespace
-	Hierarchy          *Hierarchy
-	Problems           *problems.Problems
-	Quirks             Quirks
-	Grammar            *Grammar
-	ReadTagOverrides   map[string]string
+	Parent             *Context            `yaml:"-"`
+	Name               string              `yaml:"-"`
+	Path               ard.Path            `yaml:"-"`
+	URL                urlpkg.URL          `yaml:"-"`
+	Data               ard.Value           `yaml:"-"`
+	Locator            ard.Locator         `yaml:"-"`
+	CanonicalNamespace *string             `yaml:"-"`
+	Namespace          *Namespace          `yaml:"-"`
+	ScriptletNamespace *ScriptletNamespace `yaml:"-"`
+	Hierarchy          *Hierarchy          `yaml:"-"`
+	Problems           *problems.Problems  `yaml:"-"`
+	Quirks             Quirks              `yaml:"-"`
+	Grammar            *Grammar            `yaml:"-"`
+	ReadTagOverrides   map[string]string   `yaml:"-"`
 }
 
 func NewContext(stylist *terminal.Stylist, quirks Quirks) *Context {

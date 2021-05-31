@@ -21,7 +21,7 @@ import (
 //
 
 type Import struct {
-	*Entity `name:"import" json:"-" yaml:",inline"`
+	*Entity `name:"import" json:"-" yaml:",omitempty,inline,alias"`
 
 	URL            *string `read:"url" require:"" yaml:"url"` // renamed in TOSCA 2.0
 	RepositoryName *string `read:"repository" yaml:"repository_name,omitempty"`

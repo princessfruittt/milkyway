@@ -2,8 +2,8 @@ package tosca_v1_3
 
 import (
 	"github.com/tliron/kutil/ard"
-	"github.com/tliron/puccini/tosca/grammars/tosca_v2_0"
 	"milkyway/pkg/tosca"
+	"milkyway/pkg/tosca/grammars/tosca_v2_0"
 )
 
 //

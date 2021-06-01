@@ -3,7 +3,6 @@ package grammars
 import (
 	"fmt"
 
-	_ "github.com/tliron/puccini/tosca/profiles"
 	"milkyway/pkg/tosca"
 	"milkyway/pkg/tosca/grammars/cloudify_v1_3"
 	"milkyway/pkg/tosca/grammars/hot"
@@ -12,6 +11,7 @@ import (
 	"milkyway/pkg/tosca/grammars/tosca_v1_2"
 	"milkyway/pkg/tosca/grammars/tosca_v1_3"
 	"milkyway/pkg/tosca/grammars/tosca_v2_0"
+	_ "milkyway/pkg/tosca/profiles"
 )
 
 func init() {

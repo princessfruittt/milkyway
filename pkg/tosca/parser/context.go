@@ -5,8 +5,8 @@ import (
 
 	"github.com/tliron/kutil/problems"
 	"github.com/tliron/kutil/terminal"
-	"github.com/tliron/puccini/tosca/grammars"
 	"milkyway/pkg/tosca"
+	"milkyway/pkg/tosca/grammars"
 )
 
 type Context struct {

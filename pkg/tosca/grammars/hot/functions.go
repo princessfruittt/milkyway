@@ -2,10 +2,10 @@ package hot
 
 import (
 	"github.com/tliron/kutil/ard"
-	profile "github.com/tliron/puccini/tosca/profiles/hot/v1_0"
 	"github.com/tliron/yamlkeys"
 	"milkyway/pkg/tosca"
 	"milkyway/pkg/tosca/normal"
+	profile "milkyway/pkg/tosca/profiles/hot/v1_0"
 )
 
 //

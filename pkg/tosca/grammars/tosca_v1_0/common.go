@@ -2,11 +2,11 @@ package tosca_v1_0
 
 import (
 	"github.com/tliron/kutil/logging"
-	"github.com/tliron/puccini/tosca/grammars/tosca_v1_1"
-	"github.com/tliron/puccini/tosca/grammars/tosca_v1_2"
-	"github.com/tliron/puccini/tosca/grammars/tosca_v1_3"
-	"github.com/tliron/puccini/tosca/grammars/tosca_v2_0"
 	"milkyway/pkg/tosca"
+	"milkyway/pkg/tosca/grammars/tosca_v1_1"
+	"milkyway/pkg/tosca/grammars/tosca_v1_2"
+	"milkyway/pkg/tosca/grammars/tosca_v1_3"
+	"milkyway/pkg/tosca/grammars/tosca_v2_0"
 )
 
 var log = logging.GetLogger("puccini.grammars.tosca_v1_0")

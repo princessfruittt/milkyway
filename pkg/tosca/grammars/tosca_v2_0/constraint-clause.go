@@ -2,10 +2,10 @@ package tosca_v2_0
 
 import (
 	"github.com/tliron/kutil/ard"
-	profile "github.com/tliron/puccini/tosca/profiles/implicit/v2_0"
 	"github.com/tliron/yamlkeys"
 	"milkyway/pkg/tosca"
 	"milkyway/pkg/tosca/normal"
+	profile "milkyway/pkg/tosca/profiles/implicit/v2_0"
 )
 
 // Built-in constraint functions

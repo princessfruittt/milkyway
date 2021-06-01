@@ -2,10 +2,10 @@ package cloudify_v1_3
 
 import (
 	"github.com/tliron/kutil/ard"
-	profile "github.com/tliron/puccini/tosca/profiles/cloudify/v5_0_5"
 	"github.com/tliron/yamlkeys"
 	"milkyway/pkg/tosca"
 	"milkyway/pkg/tosca/normal"
+	profile "milkyway/pkg/tosca/profiles/cloudify/v5_0_5"
 )
 
 //

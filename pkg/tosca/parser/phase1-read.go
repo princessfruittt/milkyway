@@ -7,10 +7,10 @@ import (
 
 	"github.com/tliron/kutil/reflection"
 	urlpkg "github.com/tliron/kutil/url"
-	"github.com/tliron/puccini/tosca/csar"
-	"github.com/tliron/puccini/tosca/grammars"
 	"github.com/tliron/yamlkeys"
 	"milkyway/pkg/tosca"
+	"milkyway/pkg/tosca/csar"
+	"milkyway/pkg/tosca/grammars"
 )
 
 func (self *Context) ReadRoot(url urlpkg.URL, template string) bool {

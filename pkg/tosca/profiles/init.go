@@ -1,15 +1,15 @@
 package profiles
 
 import (
-	cloudify_v5_0_5 "github.com/tliron/puccini/tosca/profiles/cloudify/v5_0_5"
-	common "github.com/tliron/puccini/tosca/profiles/common/v1_0"
-	hot_v1_0 "github.com/tliron/puccini/tosca/profiles/hot/v1_0"
-	implicit_v2_0 "github.com/tliron/puccini/tosca/profiles/implicit/v2_0"
-	simpleForNFV_v1_0 "github.com/tliron/puccini/tosca/profiles/simple-for-nfv/v1_0"
-	simple_v1_0 "github.com/tliron/puccini/tosca/profiles/simple/v1_0"
-	simple_v1_1 "github.com/tliron/puccini/tosca/profiles/simple/v1_1"
-	simple_v1_2 "github.com/tliron/puccini/tosca/profiles/simple/v1_2"
-	simple_v1_3 "github.com/tliron/puccini/tosca/profiles/simple/v1_3"
+	cloudify_v5_0_5 "milkyway/pkg/tosca/profiles/cloudify/v5_0_5"
+	common "milkyway/pkg/tosca/profiles/common/v1_0"
+	hot_v1_0 "milkyway/pkg/tosca/profiles/hot/v1_0"
+	implicit_v2_0 "milkyway/pkg/tosca/profiles/implicit/v2_0"
+	simpleForNFV_v1_0 "milkyway/pkg/tosca/profiles/simple-for-nfv/v1_0"
+	simple_v1_0 "milkyway/pkg/tosca/profiles/simple/v1_0"
+	simple_v1_1 "milkyway/pkg/tosca/profiles/simple/v1_1"
+	simple_v1_2 "milkyway/pkg/tosca/profiles/simple/v1_2"
+	simple_v1_3 "milkyway/pkg/tosca/profiles/simple/v1_3"
 
 	"github.com/tliron/kutil/url"
 )

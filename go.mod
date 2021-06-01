@@ -20,7 +20,4 @@ require (
 	github.com/tliron/puccini v0.18.0
 	github.com/tliron/yamlkeys v1.3.5
 	golang.org/x/sys v0.0.0-20210531080801-fdfd190a6549 // indirect
-	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
-	gopkg.in/go-playground/validator.v9 v9.30.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )

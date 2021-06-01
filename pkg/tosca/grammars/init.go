@@ -3,15 +3,15 @@ package grammars
 import (
 	"fmt"
 
-	"github.com/tliron/puccini/tosca/grammars/cloudify_v1_3"
-	"github.com/tliron/puccini/tosca/grammars/hot"
-	"github.com/tliron/puccini/tosca/grammars/tosca_v1_0"
-	"github.com/tliron/puccini/tosca/grammars/tosca_v1_1"
-	"github.com/tliron/puccini/tosca/grammars/tosca_v1_2"
-	"github.com/tliron/puccini/tosca/grammars/tosca_v1_3"
-	"github.com/tliron/puccini/tosca/grammars/tosca_v2_0"
 	_ "github.com/tliron/puccini/tosca/profiles"
 	"milkyway/pkg/tosca"
+	"milkyway/pkg/tosca/grammars/cloudify_v1_3"
+	"milkyway/pkg/tosca/grammars/hot"
+	"milkyway/pkg/tosca/grammars/tosca_v1_0"
+	"milkyway/pkg/tosca/grammars/tosca_v1_1"
+	"milkyway/pkg/tosca/grammars/tosca_v1_2"
+	"milkyway/pkg/tosca/grammars/tosca_v1_3"
+	"milkyway/pkg/tosca/grammars/tosca_v2_0"
 )
 
 func init() {

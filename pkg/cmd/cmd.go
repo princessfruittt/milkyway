@@ -81,11 +81,10 @@ func (b *cmdsBuilder) newCommonCMD() *commonCmd {
 	cc.baseBuilderCmd = b.newBuilderCmd(&cobra.Command{
 		Use:                   "milkyway [flags]",
 		DisableFlagsInUseLine: true,
-		Short:                 "milkyway generate TOSCA node types from Ansible role",
-		Long:                  "milkyway is the main command, used to generate TOSCA node types from Ansible Galaxy role",
-		Example: `
-		# Apply the generated output tosca.node.Type in TOSCA orchestrator
-		milkyway -u "https://github.com/geerlingguy/ansible-role-nginx"`,
+		Short:                 "milkyway generates TOSCA node types from Ansible role",
+		Long: `"milkyway" is the main command, used to generate TOSCA node type from Ansible Galaxy role.
+Use the generated output tosca.node.Type with TOSCA orchestrator"`,
+		Example: `milkyway -u "https://github.com/geerlingguy/ansible-role-nginx"`,
 		Run: func(cmd *cobra.Command, args []string) {
 			defer cc.timeTrack(time.Now(), "Total")
 			c := result{"my result"}
@@ -97,12 +96,17 @@ func (b *cmdsBuilder) newCommonCMD() *commonCmd {
 }
 
 type builderCommon struct {
-	roleURL string
-	quiet   bool
+	toscaVersion string
+	quiet        bool
 }
 
 func (cc *builderCommon) handleFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&cc.roleURL, "roleURL", "u", "", "Ansible galaxy GitHub URL e.g. https://github.com/gantsign/ansible-role-golang")
+	cmd.Flags().StringVarP(&cc.toscaVersion, "tosca", "t", "2", `Version of TOSCA. e.g: -tv 1. 
+List of versions:
+	1 - TOSCA v1.0
+	1.1 or 1.2 or 1.3 - TOSCA Simple YAML Profile versions
+	2 - TOSCA v2.0
+`)
 }
 
 func (b *cmdsBuilder) newBuilderCmd(cmd *cobra.Command) *baseBuilderCmd {

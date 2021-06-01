@@ -17,9 +17,9 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16
-#
-#    - name: Init
-#      run: go mod init milkyway
+
+    - name: Init
+      run: go mod init milkyway
 
     - name: Tidy
       run: go mod tidy

@@ -42,6 +42,12 @@ func NewNodeType(context *tosca.Context) *NodeType {
 func (self NodeType) AddProperty(k string, v PropertyDefinition) {
 	self.PropertyDefinitions[k] = &v
 }
+func (self NodeType) AddInterface(k string, v InterfaceDefinition) {
+	self.InterfaceDefinitions[k] = &v
+}
+func (self NodeType) AddArtifact(k string, v ArtifactDefinition) {
+	self.ArtifactDefinitions[k] = &v
+}
 
 // tosca.Reader signature
 func ReadNodeType(context *tosca.Context) tosca.EntityPtr {

@@ -9,11 +9,11 @@ go build
 go install
 ```
 ## Usage
-```bigquery
+```
 milkyway help
 ## or milkyway -h, --help
-milkyway generate -u <ansible_role_url>
-
+milkyway generate -u [ansible_role_url] 
+milkyway generate -p [ansible_role_path] -n [role_name]
 ```
 ### Input
 We get github url or path to a folder with role. You need make sure, that this role already worked, we are not magicians and could not correct Role errors.
@@ -50,7 +50,7 @@ Program generates CSAR archive with below structure:
 ├───defaults:
 |   └──main.yaml
 ```
-# Realy quick start :stars:
+# Really quick start :stars:
 * [install go](https://golang.org/doc/install)
 ```
 git clone https://github.com/princessfruittt/milkyway.git

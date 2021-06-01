@@ -17,13 +17,13 @@ import (
 //
 
 type OperationDefinition struct {
-	*Entity `name:"operation definition"`
-	Name    string
+	*Entity `name:"operation definition" yaml:"-"`
+	Name    string `yaml:"-"`
 
-	Description      *string                  `read:"description"`
-	Implementation   *InterfaceImplementation `read:"implementation,InterfaceImplementation"`
-	InputDefinitions PropertyDefinitions      `read:"inputs,PropertyDefinition"`
-	Outputs          OutputMappings           `read:"outputs,OutputMapping"` // introduced in TOSCA 1.3
+	Description      *string                  `read:"description" yaml:"description,omitempty"`
+	Implementation   *InterfaceImplementation `read:"implementation,InterfaceImplementation" yaml:"implementation,omitempty"`
+	InputDefinitions PropertyDefinitions      `read:"inputs,PropertyDefinition" yaml:"input,omitempty"`
+	Outputs          OutputMappings           `read:"outputs,OutputMapping" yaml:"outputs,omitempty"` // introduced in TOSCA 1.3
 }
 
 func NewOperationDefinition(context *tosca.Context) *OperationDefinition {

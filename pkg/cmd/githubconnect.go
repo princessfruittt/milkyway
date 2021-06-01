@@ -33,6 +33,19 @@ func NewConnectionBuilder(urlPath string) *GithubConnection {
 		ansibleRole: AnsibleRole{},
 	}
 }
+func GitHubConnect(p string) (gc GithubConnection) {
+	gc = *NewConnectionBuilder(p)
+	err := gc.getContents("", "", "")
+	if err != nil {
+		log.Fatal(err)
+	} else if NilFields(gc.ansibleRole) {
+		log.Fatal(&cmdError{
+			s:         "Please, make sure that Ansible role is correct",
+			userError: true,
+		})
+	}
+	return
+}
 
 // func getContents get Ansible role info from GitHub repository
 // look only into role directories such as meta, defaults, tasks etc.

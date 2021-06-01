@@ -23,7 +23,9 @@ type AnsibleRole struct {
 	Handlers     fs.FileInfo
 	Files        fs.FileInfo
 	//Library       []byte
-	Version string
+	Artifacts map[string]string
+	Version   string
+	Name      string
 }
 
 func NewAnsibleRole() *AnsibleRole {
@@ -38,13 +40,15 @@ func NewAnsibleRole() *AnsibleRole {
 		Defaults:     nil,
 		Handlers:     nil,
 		Files:        nil,
+		Artifacts:    make(map[string]string),
 		Version:      "",
+		Name:         "Default",
 	}
 }
 
 type ansibleRoleMeta struct {
-	Meta         GalaxyMeta `yaml:"galaxy_info,omitempty"`
-	Dependencies []string   `yaml:"dependencies,omitempty"`
+	Meta         GalaxyMeta    `yaml:"galaxy_info,omitempty"`
+	Dependencies []interface{} `yaml:"dependencies,omitempty"`
 }
 
 type GalaxyMeta struct {
@@ -70,11 +74,22 @@ type role struct {
 
 func newRole() *role {
 	return &role{
-		r: AnsibleRole{},
+		r: *NewAnsibleRole(),
 	}
 }
 
 var dirWithMain = []string{"defaults", "meta", "tasks", "vars"}
+
+func NilFields(x AnsibleRole) bool {
+	rv := reflect.ValueOf(&x).Elem()
+
+	for i := 0; i < rv.NumField(); i++ {
+		if !rv.Field(i).IsNil() {
+			return false
+		}
+	}
+	return true
+}
 
 // GetRoleFromPath return struct with filled AnsibleRole fields from absolute path input.
 func GetRoleFromPath(rolePath string) AnsibleRole {
@@ -92,13 +107,15 @@ func GetRoleFromPath(rolePath string) AnsibleRole {
 		}
 		switch de.IsDir() {
 		case true:
-			switch de.Name() {
+			dn := strings.ToLower(de.Name())
+			switch dn {
 			case "defaults", "meta", "tasks", "vars":
 				err := getRoleContent(filepath.Join(rolePath, de.Name()), de.Name(), r)
 				if err != nil {
 					return err
 				}
 			case "templates", "files", "handlers":
+				r.r.Artifacts[dn] = dn
 				i, err := de.Info()
 				if err != nil {
 					return err
@@ -124,20 +141,22 @@ func getRoleContent(rolePath string, parentDirName string, r *role) error {
 			//By default Ansible will look in each directory within a role for a main.yml file for relevant content (also main.yaml and main)
 
 		} else {
-			n := strings.ToLower(de.Name())
+			dn := strings.ToLower(de.Name())
 			content, err := os.ReadFile(filepath.Join(rolePath, de.Name()))
 			if err != nil {
 				return err
 			}
-			if n == "main.yaml" || n == "main.yml" || n == "main" {
-				ra := reflect.ValueOf(&r.r).Elem()
-				ra.FieldByName(strings.Title(parentDirName) + "Main").SetBytes(content)
+			if dn == "main.yaml" || dn == "main.yml" || dn == "main" {
+				ar := reflect.ValueOf(&r.r).Elem()
+				ar.FieldByName(strings.Title(parentDirName) + "Main").SetBytes(content)
 			} else {
-				ra := reflect.ValueOf(&r.r).Elem()
-				if ra.FieldByName(strings.Title(parentDirName)).Kind() == reflect.Array {
+				pdn := strings.ToLower(parentDirName)
+				r.r.Artifacts[pdn] = pdn
+				ar := reflect.ValueOf(&r.r).Elem()
+				if ar.FieldByName(strings.Title(parentDirName)).Kind() == reflect.Array {
 					srcArr := [2]byte{}
 					copy(srcArr[:], content)
-					reflect.Copy(ra, reflect.ValueOf(srcArr))
+					reflect.Copy(ar, reflect.ValueOf(srcArr))
 				}
 			}
 			return err

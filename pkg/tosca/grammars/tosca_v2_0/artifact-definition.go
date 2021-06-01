@@ -24,8 +24,8 @@ import (
 //
 
 type ArtifactDefinition struct {
-	*Entity `name:"artifact definition"`
-	Name    string
+	*Entity `name:"artifact definition" yaml:"-"`
+	Name    string `yaml:"-"`
 
 	ArtifactTypeName  *string `read:"type" yaml:"type,omitempty"` // required only if cannot be inherited
 	Description       *string `read:"description" yaml:"description,omitempty"`
@@ -40,9 +40,9 @@ type ArtifactDefinition struct {
 	ArtifactType *ArtifactType `lookup:"type,ArtifactTypeName" json:"-" yaml:"-"`
 	Repository   *Repository   `lookup:"repository,RepositoryName" json:"-" yaml:"-"`
 
-	url                urlpkg.URL
-	urlProblemReported bool
-	lock               sync.Mutex
+	url                urlpkg.URL `yaml:"-"`
+	urlProblemReported bool       `yaml:"-"`
+	lock               sync.Mutex `yaml:"-"`
 }
 
 func NewArtifactDefinition(context *tosca.Context) *ArtifactDefinition {

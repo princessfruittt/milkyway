@@ -30,17 +30,16 @@ func TestExecute(t *testing.T) {
 	//	c.Assert(resp.Err, qt.IsNil)
 	//})
 	c.Run("hosts from path", func(c *qt.C) {
-		resp := Execute([]string{"generate", "-p", "assets/ansible-role-hosts-master"})
+		resp := Execute([]string{"generate", "-p", "assets/ansible-role-hosts-master", "-n", "hosts"})
 		c.Assert(resp.Err, qt.IsNil)
 	})
-
-	c.Run("users from path", func(c *qt.C) {
-		resp := Execute([]string{"generate", "-p", "/home/princessfruitt/GolandProjects/milkyway/assets/ansible-users-master"})
-		c.Assert(resp.Err, qt.IsNil)
-	})
-	//
 	//c.Run("datadog from path", func(c *qt.C) {
 	//	resp := Execute([]string{"generate", "-p", "/home/princessfruitt/GolandProjects/milkyway/assets/ansible-datadog-master"})
 	//	c.Assert(resp.Err, qt.IsNil)
 	//})
+	c.Run("users from path", func(c *qt.C) {
+		resp := Execute([]string{"generate", "-p", "assets/ansible-users-master"})
+		c.Assert(resp.Err, qt.IsNil)
+	})
+	//
 }

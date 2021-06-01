@@ -17,12 +17,12 @@ import (
 //
 
 type InterfaceImplementation struct {
-	*Entity `name:"interface implementation"`
+	*Entity `name:"interface implementation" yaml:"-"`
 
-	Primary       *string   `read:"primary"`
-	Dependencies  *[]string `read:"dependencies"`
-	Timeout       *int64    `read:"timeout"`        // introduced in TOSCA 1.2
-	OperationHost *string   `read:"operation_host"` // introduced in TOSCA 1.2
+	Primary       *string   `read:"primary" yaml:"primary,omitempty"`
+	Dependencies  *[]string `read:"dependencies" yaml:"dependencies,omitempty"`
+	Timeout       *int64    `read:"timeout" yaml:"timeout,omitempty"`               // introduced in TOSCA 1.2
+	OperationHost *string   `read:"operation_host" yaml:"operation_host,omitempty"` // introduced in TOSCA 1.2
 }
 
 func NewInterfaceImplementation(context *tosca.Context) *InterfaceImplementation {

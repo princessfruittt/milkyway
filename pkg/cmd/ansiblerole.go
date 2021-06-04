@@ -16,15 +16,15 @@ type AnsibleRole struct {
 	VarsMain     []byte
 	DefaultsMain []byte
 	MetaMain     []byte
-	Templates    fs.FileInfo
 	Tasks        [][]byte
 	Vars         [][]byte
 	Defaults     [][]byte
-	Handlers     fs.FileInfo
-	Files        fs.FileInfo
+	TasksDir     fs.FileInfo
+	TemplatesDir fs.FileInfo
+	HandlersDir  fs.FileInfo
+	FilesDir     fs.FileInfo
 	//Library       []byte
 	Artifacts map[string]string
-	Version   string
 	Name      string
 }
 
@@ -34,14 +34,13 @@ func NewAnsibleRole() *AnsibleRole {
 		VarsMain:     nil,
 		DefaultsMain: nil,
 		MetaMain:     nil,
-		Templates:    nil,
+		TemplatesDir: nil,
 		Tasks:        nil,
 		Vars:         nil,
 		Defaults:     nil,
-		Handlers:     nil,
-		Files:        nil,
+		HandlersDir:  nil,
+		FilesDir:     nil,
 		Artifacts:    make(map[string]string),
-		Version:      "",
 		Name:         "Default",
 	}
 }
@@ -121,7 +120,7 @@ func GetRoleFromPath(rolePath string) AnsibleRole {
 					return err
 				}
 				f := reflect.ValueOf(&r.r).Elem()
-				f.FieldByName(strings.Title(de.Name())).Set(reflect.ValueOf(i))
+				f.FieldByName(strings.Title(de.Name()) + "Dir").Set(reflect.ValueOf(i))
 			}
 			return err
 		}
@@ -139,25 +138,33 @@ func getRoleContent(rolePath string, parentDirName string, r *role) error {
 		i := sort.Search(len(dirWithMain), func(i int) bool { return dirWithMain[i] >= de.Name() })
 		if de.IsDir() == true && i < len(dirWithMain) && dirWithMain[i] == de.Name() {
 			//By default Ansible will look in each directory within a role for a main.yml file for relevant content (also main.yaml and main)
-
 		} else {
-			dn := strings.ToLower(de.Name())
-			content, err := os.ReadFile(filepath.Join(rolePath, de.Name()))
-			if err != nil {
-				return err
-			}
-			if dn == "main.yaml" || dn == "main.yml" || dn == "main" {
-				ar := reflect.ValueOf(&r.r).Elem()
-				ar.FieldByName(strings.Title(parentDirName) + "Main").SetBytes(content)
+			if de.IsDir() {
+				r.r.Artifacts[parentDirName] = parentDirName
+				i, err := de.Info()
+				if err != nil {
+					return err
+				}
+				f := reflect.ValueOf(&r.r).Elem()
+				f.FieldByName(strings.Title(parentDirName) + "Dir").Set(reflect.ValueOf(i))
 			} else {
-				pdn := strings.ToLower(parentDirName)
-				r.r.Artifacts[pdn] = pdn
-				ar := reflect.ValueOf(&r.r).Elem()
-				if ar.FieldByName(strings.Title(parentDirName)).Kind() == reflect.Slice {
-					ar.FieldByName(strings.Title(parentDirName)).Set(reflect.Append(ar.FieldByName(strings.Title(parentDirName)), reflect.ValueOf(content)))
+				dn := strings.ToLower(de.Name())
+				content, err := os.ReadFile(filepath.Join(rolePath, de.Name()))
+				if err != nil {
+					return nil
+				}
+				if dn == "main.yaml" || dn == "main.yml" || dn == "main" {
+					ar := reflect.ValueOf(&r.r).Elem()
+					ar.FieldByName(strings.Title(parentDirName) + "Main").SetBytes(content)
+				} else {
+					pdn := strings.ToLower(parentDirName)
+					r.r.Artifacts[pdn] = pdn
+					ar := reflect.ValueOf(&r.r).Elem()
+					if ar.FieldByName(strings.Title(parentDirName)).Kind() == reflect.Slice {
+						ar.FieldByName(strings.Title(parentDirName)).Set(reflect.Append(ar.FieldByName(strings.Title(parentDirName)), reflect.ValueOf(content)))
+					}
 				}
 			}
-			return err
 		}
 		return err
 	})

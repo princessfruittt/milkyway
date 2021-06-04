@@ -19,7 +19,7 @@ type CapabilityFilter struct {
 	*Entity `name:"capability filter" yaml:"-"`
 	Name    string `yaml:"-"`
 
-	PropertyFilters PropertyFilters `read:"properties,PropertyFilter" yaml:",inline"`
+	PropertyFilters PropertyFilters `read:"properties,PropertyFilter" yaml:"properties"`
 }
 
 func (self CapabilityFilter) AddPropertyFilters(k string, v PropertyFilter) CapabilityFilter {
@@ -66,6 +66,7 @@ func (self CapabilityFilter) Normalize(normalRequirement *normal.Requirement) no
 //
 
 type CapabilityFilters []*CapabilityFilter
+type CapabilityFiltersMap map[string]*CapabilityFilter
 
 func (self CapabilityFilters) Normalize(normalRequirement *normal.Requirement) {
 	for _, capabilityFilter := range self {

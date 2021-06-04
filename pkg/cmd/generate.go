@@ -30,7 +30,6 @@ var scTypeName = "tosca.nodes.SoftwareComponent"
 var cTypeName = "tosca.nodes.Compute"
 var iTypeName = "tosca.interfaces.node.lifecycle.Standard"
 var fTypeName = "tosca.artifacts.File"
-var dTypeDescription = "This artifact type is used when an artifact definition needs to have its associated directory."
 
 func sPtr(s string) *string { return &s }
 
@@ -105,40 +104,8 @@ func (ar AnsibleRole) transform(name string) *tosca2.ServiceTemplate {
 			meta["min_ansible_version"] = m.Meta.MinAnsibleVersion
 		}
 		nodeType.Metadata = meta
-		//fill requirements
-
 		if m.Meta.Platforms != nil {
-			platforms := map[string][]interface{}{}
-			for _, p := range m.Meta.Platforms {
-				platforms[p.Name] = p.Versions
-			}
-			keys := make([]string, 0, len(platforms))
-			values := make([][]interface{}, 0, len(platforms))
-
-			for k, v := range platforms {
-				keys = append(keys, k)
-				values = append(values, v)
-			}
-			versions := map[string]string{}
-			for _, v := range values {
-				for _, e := range v {
-					temp := fmt.Sprint(e)
-					versions[temp] = temp
-				}
-			}
-			vers := make([]string, 0, len(versions))
-			for _, ver := range versions {
-				vers = append(vers, ver)
-
-			}
-			new := tosca2.CapabilityFilter{}
-			new = new.AddPropertyFilters("distribution", tosca2.PropertyFilter{ConstraintClauses: []*tosca2.ConstraintClause{{Valid: "[ " + strings.Join(keys, ", ") + " ]"}}})
-			new = new.AddPropertyFilters("version", tosca2.PropertyFilter{ConstraintClauses: []*tosca2.ConstraintClause{{Valid: "[ " + strings.Join(vers, ", ") + " ]"}}})
-			req := &tosca2.RequirementDefinition{
-				TargetCapabilityTypeName: sPtr("host"),
-				TargetNodeTypeName:       &cTypeName,
-				TargetNodeFilter:         &tosca2.NodeFilter{CapabilityFilters: []*tosca2.CapabilityFilter{&new}}}
-			nodeType.RequirementDefinitions = []*tosca2.RequirementDefinition{req}
+			nodeType = fillRequirements(nodeType, m.Meta.Platforms)
 		}
 	}
 
@@ -159,9 +126,45 @@ func (ar AnsibleRole) transform(name string) *tosca2.ServiceTemplate {
 	serviceTemplate.AddDefinitionVersion()
 	serviceTemplate.AddNodeType(nodeType.Name, *nodeType)
 	//fillImports(serviceTemplate)
-	//fillArtifacts(serviceTemplate, templateContext)
-
 	return serviceTemplate
+}
+
+// func fillRequirements
+func fillRequirements(nt *tosca2.NodeType, metaP []Platform) *tosca2.NodeType {
+	platforms := map[string][]interface{}{}
+	for _, p := range metaP {
+		platforms[p.Name] = p.Versions
+	}
+	keys := make([]string, 0, len(platforms))
+	values := make([][]interface{}, 0, len(platforms))
+
+	for k, v := range platforms {
+		keys = append(keys, k)
+		values = append(values, v)
+	}
+	versions := map[string]string{}
+	for _, v := range values {
+		for _, e := range v {
+			temp := fmt.Sprint(e)
+			versions[temp] = temp
+		}
+	}
+	vers := make([]string, 0, len(versions))
+	for _, ver := range versions {
+		vers = append(vers, ver)
+
+	}
+	cf := tosca2.CapabilityFilter{}
+	cf = cf.AddPropertyFilters("distribution", tosca2.PropertyFilter{Valid: "[ " + strings.Join(keys, ", ") + " ]"})
+	cf = cf.AddPropertyFilters("version", tosca2.PropertyFilter{Valid: "[ " + strings.Join(vers, ", ") + " ]"})
+	nf := tosca2.NodeFilter{}
+	nf = nf.AddCapabilityFilter("os", cf)
+	req := tosca2.RequirementDefinition{
+		TargetNodeTypeName: &cTypeName,
+		TargetNodeFilter:   &nf,
+	}
+	nt = nt.AddRequirement("host", req)
+	return nt
 }
 
 // func fillInterfaces check AnsibleRole folders with artifacts and fill tosca.Standard.create interface
@@ -178,7 +181,7 @@ func fillInterfaces(nt *tosca2.NodeType, ar AnsibleRole) {
 		InterfaceTypeName: &iTypeName,
 		OperationDefinitions: map[string]*tosca2.OperationDefinition{"create": {
 			Implementation: &tosca2.InterfaceImplementation{
-				Primary:      sPtr(filepath.Join(pathMap["tasks"], "main.yaml")),
+				Primary:      sPtr(filepath.Join("artifacts", "tasks", "main.yaml")),
 				Dependencies: &dep,
 			},
 		}},

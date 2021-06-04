@@ -18,19 +18,23 @@ import (
 type NodeFilter struct {
 	*Entity `name:"node filter" yaml:"-"`
 
-	PropertyFilters   PropertyFilters   `read:"properties,PropertyFilter" yaml:"-"`
-	CapabilityFilters CapabilityFilters `read:"capabilities,{}CapabilityFilter" yaml:"capabilities,omitempty"`
+	PropertyFilters   PropertyFilters         `read:"properties,PropertyFilter" yaml:"-"`
+	CapabilityFilters []*CapabilityFiltersMap `read:"capabilities,{}CapabilityFilter" yaml:"capabilities"`
 }
 
-func (self NodeFilter) AddCapabilityFilter(v CapabilityFilter) {
-	temp := []*CapabilityFilter{&v}
+func (self NodeFilter) AddCapabilityFilter(k string, v CapabilityFilter) NodeFilter {
+	cfm := make(CapabilityFiltersMap)
+	cfm[k] = &v
+	temp := []*CapabilityFiltersMap{&cfm}
 	self.CapabilityFilters = append(self.CapabilityFilters, temp...)
+	return self
 }
 
 func NewNodeFilter(context *tosca.Context) *NodeFilter {
 	return &NodeFilter{
-		Entity:          NewEntity(context),
-		PropertyFilters: make(PropertyFilters),
+		Entity:            NewEntity(context),
+		PropertyFilters:   make(PropertyFilters),
+		CapabilityFilters: []*CapabilityFiltersMap{},
 	}
 }
 
@@ -43,5 +47,5 @@ func ReadNodeFilter(context *tosca.Context) tosca.EntityPtr {
 
 func (self *NodeFilter) Normalize(normalRequirement *normal.Requirement) {
 	self.PropertyFilters.Normalize(normalRequirement.NodeTemplatePropertyConstraints)
-	self.CapabilityFilters.Normalize(normalRequirement)
+	//self.CapabilityFilters.Normalize(normalRequirement.CapabilityPropertyConstraints)
 }

@@ -111,7 +111,6 @@ func (self RequirementDefinition) Render() {
 //
 
 type RequirementDefinitions map[string]*RequirementDefinition
-type RequirementDefinitionsList []*RequirementDefinition
 
 func (self RequirementDefinitions) Inherit(parentDefinitions RequirementDefinitions) {
 	for name, definition := range parentDefinitions {

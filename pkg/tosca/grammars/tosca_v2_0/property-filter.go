@@ -17,9 +17,9 @@ import (
 //
 
 type PropertyFilter struct {
-	*Entity `name:"property filter" yaml:"-"`
-	Name    string `yaml:"-"`
-
+	*Entity           `name:"property filter" yaml:"-"`
+	Name              string            `yaml:"-"`
+	Valid             string            `yaml:"- valid_values"`
 	ConstraintClauses ConstraintClauses `yaml:"constraints,omitempty"`
 }
 

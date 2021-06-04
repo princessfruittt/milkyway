@@ -31,6 +31,10 @@ func (self ServiceTemplate) AddNodeType(k string, v NodeType) {
 	self.Unit.NodeTypes[k] = &v
 }
 
+func (self ServiceTemplate) AddArtifactType(k string, v ArtifactType) {
+	self.Unit.ArtifactTypes[k] = &v
+}
+
 func (self ServiceTemplate) AddImport(imp *Import) {
 	temp := []*Import{imp}
 	self.Unit.Imports = append(self.Unit.Imports, temp...)

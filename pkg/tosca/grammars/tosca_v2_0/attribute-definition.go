@@ -26,7 +26,7 @@ type AttributeDefinition struct {
 	Default           *Value            `read:"default,Value" yaml:"-"`
 	DefaultString     interface{}       `read:"default" yaml:"default"`
 	Status            *string           `read:"status,omitempty" yaml:"status,omitempty"`
-	ConstraintClauses ConstraintClauses `read:"constraints,[]ConstraintClause" yaml:"-"`
+	ConstraintClauses ConstraintClauses `read:"constraints,[]ConstraintClause" yaml:"constraints,omitempty"`
 	KeySchema         *Schema           `read:"key_schema,Schema" yaml:"key_schema,omitempty"`     // introduced in TOSCA 1.3
 	EntrySchema       *Schema           `read:"entry_schema,Schema" yaml:"entry_schema,omitempty"` // required if list or map
 	Metadata          Metadata          `read:"metadata,Metadata" yaml:"metadata,omitempty"`       // introduced in TOSCA 1.3

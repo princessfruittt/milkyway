@@ -23,12 +23,14 @@ type generateCmd struct {
 }
 
 var importsList = []string{"relationships.yaml", "interfaces.yaml", "nodes.yaml", "artifacts.yaml"}
-var pathMap = map[string]string{"tasks": "artifacts/tasks", "vars": "artifacts/vars", "handlers": "artifacts/handlers", "files": "artifacts/files", "defaults": "artifacts/defaults", "templates": "artifacts/templates"}
+var pathMap = map[string]string{"tasks": "tasks.zip", "vars": "vars.zip", "handlers": "handlers.zip", "files": "files.zip", "defaults": "defaults.zip", "templates": "templates.zip"}
 
 //TOSCA normative types
 var scTypeName = "tosca.nodes.SoftwareComponent"
-var aTypeName = "tosca.artifacts.Directory"
+var cTypeName = "tosca.nodes.Compute"
 var iTypeName = "tosca.interfaces.node.lifecycle.Standard"
+var fTypeName = "tosca.artifacts.File"
+var dTypeDescription = "This artifact type is used when an artifact definition needs to have its associated directory."
 
 func sPtr(s string) *string { return &s }
 
@@ -73,13 +75,13 @@ func (c *generateCmd) generateType(cmd *cobra.Command, args []string) {
 func (ar AnsibleRole) transform(name string) *tosca2.ServiceTemplate {
 	ar.Name = strcase.ToCamel(name)
 	stylist := terminal.Stylize
-	//if problemsFormat != "" {
-	//	stylist = terminal.NewStylist(false)
-	//}
 	templateContext := tosca.NewContext(stylist, tosca.NewQuirks())
 	serviceTemplate := tosca2.NewServiceTemplate(templateContext)
 	nodeType := tosca2.NewNodeType(templateContext)
+
 	nodeType.Name = "ansible.nodes." + ar.Name
+	nodeType.ParentName = &scTypeName
+
 	if ar.MetaMain != nil {
 		m := &ansibleRoleMeta{}
 		err := yaml.Unmarshal(ar.MetaMain, m)
@@ -96,7 +98,6 @@ func (ar AnsibleRole) transform(name string) *tosca2.ServiceTemplate {
 		if m.Meta.Description != "" {
 			nodeType.Description = &m.Meta.Description
 		}
-
 		if m.Meta.Author != "" {
 			meta["author"] = m.Meta.Author
 		}
@@ -104,16 +105,131 @@ func (ar AnsibleRole) transform(name string) *tosca2.ServiceTemplate {
 			meta["min_ansible_version"] = m.Meta.MinAnsibleVersion
 		}
 		nodeType.Metadata = meta
-	}
-	if ar.DefaultsMain != nil {
-		var defaults map[string]interface{}
-		err := yaml.Unmarshal(ar.DefaultsMain, &defaults)
-		if err != nil {
-			log.Fatal(err)
+		//fill requirements
+
+		if m.Meta.Platforms != nil {
+			platforms := map[string][]interface{}{}
+			for _, p := range m.Meta.Platforms {
+				platforms[p.Name] = p.Versions
+			}
+			keys := make([]string, 0, len(platforms))
+			values := make([][]interface{}, 0, len(platforms))
+
+			for k, v := range platforms {
+				keys = append(keys, k)
+				values = append(values, v)
+			}
+			versions := map[string]string{}
+			for _, v := range values {
+				for _, e := range v {
+					temp := fmt.Sprint(e)
+					versions[temp] = temp
+				}
+			}
+			vers := make([]string, 0, len(versions))
+			for _, ver := range versions {
+				vers = append(vers, ver)
+
+			}
+			new := tosca2.CapabilityFilter{}
+			new = new.AddPropertyFilters("distribution", tosca2.PropertyFilter{ConstraintClauses: []*tosca2.ConstraintClause{{Valid: "[ " + strings.Join(keys, ", ") + " ]"}}})
+			new = new.AddPropertyFilters("version", tosca2.PropertyFilter{ConstraintClauses: []*tosca2.ConstraintClause{{Valid: "[ " + strings.Join(vers, ", ") + " ]"}}})
+			req := &tosca2.RequirementDefinition{
+				TargetCapabilityTypeName: sPtr("host"),
+				TargetNodeTypeName:       &cTypeName,
+				TargetNodeFilter:         &tosca2.NodeFilter{CapabilityFilters: []*tosca2.CapabilityFilter{&new}}}
+			nodeType.RequirementDefinitions = []*tosca2.RequirementDefinition{req}
 		}
-		//fill properties
-		for k, v := range defaults {
-			nodeType.AddProperty(k,
+	}
+
+	if ar.DefaultsMain != nil {
+		fillDefaultsProperties(nodeType, ar.DefaultsMain)
+	}
+	if ar.VarsMain != nil {
+		fillVarsProperties(nodeType, ar.VarsMain)
+	}
+	if ar.Vars != nil {
+		for _, v := range ar.Vars {
+			fillVarsProperties(nodeType, v)
+		}
+	}
+	if ar.TasksMain != nil {
+		fillInterfaces(nodeType, ar)
+	}
+	serviceTemplate.AddDefinitionVersion()
+	serviceTemplate.AddNodeType(nodeType.Name, *nodeType)
+	//fillImports(serviceTemplate)
+	//fillArtifacts(serviceTemplate, templateContext)
+
+	return serviceTemplate
+}
+
+// func fillInterfaces check AnsibleRole folders with artifacts and fill tosca.Standard.create interface
+func fillInterfaces(nt *tosca2.NodeType, ar AnsibleRole) {
+	var dep []string = nil
+	r := reflect.ValueOf(&ar).Elem()
+	for k := range ar.Artifacts {
+		if r.FieldByName(strings.Title(k)).IsValid() == true {
+			dep = append(dep, k)
+		}
+		nt.AddArtifact(k, tosca2.ArtifactDefinition{File: sPtr(filepath.Join("artifacts", pathMap[k])), ArtifactTypeName: &fTypeName})
+	}
+	nt.AddInterface("Standard", tosca2.InterfaceDefinition{
+		InterfaceTypeName: &iTypeName,
+		OperationDefinitions: map[string]*tosca2.OperationDefinition{"create": {
+			Implementation: &tosca2.InterfaceImplementation{
+				Primary:      sPtr(filepath.Join(pathMap["tasks"], "main.yaml")),
+				Dependencies: &dep,
+			},
+		}},
+	})
+}
+
+// fillDefaultsProperties fill first entire of variables and add it to type properties.
+func fillDefaultsProperties(nt *tosca2.NodeType, file []byte) {
+	var vars map[string]interface{}
+	err := yaml.Unmarshal(file, &vars)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for k, v := range vars {
+		nt.AddProperty(k,
+			tosca2.PropertyDefinition{
+				Required: new(bool),
+				AttributeDefinition: &tosca2.AttributeDefinition{DataTypeName: sPtr("string"),
+					DefaultString: v,
+					Default:       &tosca2.Value{Entity: &tosca2.Entity{Context: &tosca.Context{Data: v}}}},
+			})
+	}
+}
+
+// func fillVarsProperties fill first entire of variables, and put repetitive variables to valid_value constraints
+func fillVarsProperties(nt *tosca2.NodeType, file []byte) {
+	var vars map[string]interface{}
+	err := yaml.Unmarshal(file, &vars)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var varsMap = make(map[string][]interface{})
+	for p := range nt.PropertyDefinitions {
+		for k, v := range vars {
+			if p == k {
+				varsMap[p] = append(varsMap[p], v)
+			}
+		}
+		if varsMap[p] != nil {
+			if len(nt.PropertyDefinitions[p].ConstraintClauses) > 0 {
+				temp := strings.Join([]string{fmt.Sprint(varsMap[p]), nt.PropertyDefinitions[p].ConstraintClauses[0].Valid}, ",")
+				nt.PropertyDefinitions[p].ConstraintClauses[0].Valid = temp
+			} else {
+				temp := []*tosca2.ConstraintClause{{Valid: fmt.Sprint(varsMap[p])}}
+				nt.PropertyDefinitions[p].ConstraintClauses = temp
+			}
+		}
+	}
+	for k, v := range vars {
+		if varsMap[k] == nil {
+			nt.AddProperty(k,
 				tosca2.PropertyDefinition{
 					Required: new(bool),
 					AttributeDefinition: &tosca2.AttributeDefinition{DataTypeName: sPtr("string"),
@@ -122,48 +238,12 @@ func (ar AnsibleRole) transform(name string) *tosca2.ServiceTemplate {
 				})
 		}
 	}
+}
 
-	//nodeType.Type.Version = &tosca2.Version{
-	//	CanonicalString: "",
-	//	OriginalString:  "",
-	//	Comparer:        "",
-	//	Major:           0,
-	//	Minor:           0,
-	//	Fix:             0,
-	//	Qualifier:       "",
-	//	Build:           0,
-	//}
-	//&[]bool{true}[0]
-	//fill meta
-	nodeType.ParentName = &scTypeName
-	//fill imports
+// func fillArtifacts fill imports section for normative types import
+func fillImports(st *tosca2.ServiceTemplate) {
 	for _, s := range importsList {
-		serviceTemplate.AddImport(&tosca2.Import{
+		st.AddImport(&tosca2.Import{
 			URL: sPtr(filepath.Join("normativetypes/2.0/", s))})
 	}
-	//fill requirements
-	//fill interfaces
-	if ar.TasksMain != nil {
-		var dep []string = nil
-		r := reflect.ValueOf(&ar).Elem()
-		for k := range ar.Artifacts {
-			if r.FieldByName(strings.Title(k)).IsValid() == true {
-				dep = append(dep, k)
-			}
-			nodeType.AddArtifact(k, tosca2.ArtifactDefinition{File: sPtr(filepath.Join("artifacts", k)), ArtifactTypeName: &aTypeName})
-		}
-		nodeType.AddInterface("Standard", tosca2.InterfaceDefinition{
-			InterfaceTypeName: &iTypeName,
-			OperationDefinitions: map[string]*tosca2.OperationDefinition{"create": {
-				Implementation: &tosca2.InterfaceImplementation{
-					Primary:      sPtr(pathMap["tasks"] + "artifacts/tasks/main.yaml"),
-					Dependencies: &dep,
-				},
-			}},
-		})
-	}
-	serviceTemplate.Unit.NodeTypes = map[string]*tosca2.NodeType{}
-	serviceTemplate.AddNodeType(nodeType.Name, *nodeType)
-	serviceTemplate.AddDefinitionVersion()
-	return serviceTemplate
 }

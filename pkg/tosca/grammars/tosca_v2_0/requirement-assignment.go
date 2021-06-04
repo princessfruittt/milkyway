@@ -66,13 +66,13 @@ func NewDefaultRequirementAssignment(index int, definition *RequirementDefinitio
 	return self
 }
 
-func (self *RequirementAssignment) GetDefinition(nodeTemplate *NodeTemplate) (*RequirementDefinition, bool) {
-	if nodeTemplate.NodeType == nil {
-		return nil, false
-	}
-	definition, ok := nodeTemplate.NodeType.RequirementDefinitions[self.Name]
-	return definition, ok
-}
+//func (self *RequirementAssignment) GetDefinition(nodeTemplate *NodeTemplate) (*RequirementDefinition, bool) {
+//	if nodeTemplate.NodeType == nil {
+//		return nil, false
+//	}
+//	definition, ok := nodeTemplate.NodeType.RequirementDefinitions[self.Name]
+//	return definition, ok
+//}
 
 func (self *RequirementAssignment) Normalize(nodeTemplate *NodeTemplate, normalNodeTemplate *normal.NodeTemplate) *normal.Requirement {
 	normalRequirement := normalNodeTemplate.NewRequirement(self.Name, normal.NewLocationForContext(self.Context))
@@ -101,13 +101,13 @@ func (self *RequirementAssignment) Normalize(nodeTemplate *NodeTemplate, normalN
 		self.TargetNodeFilter.Normalize(normalRequirement)
 	}
 
-	if self.Relationship != nil {
-		if definition, ok := self.GetDefinition(nodeTemplate); ok {
-			self.Relationship.Normalize(definition.RelationshipDefinition, normalRequirement.NewRelationship())
-		} else {
-			self.Relationship.Normalize(nil, normalRequirement.NewRelationship())
-		}
-	}
+	//if self.Relationship != nil {
+	//	if definition, ok := self.GetDefinition(nodeTemplate); ok {
+	//		self.Relationship.Normalize(definition.RelationshipDefinition, normalRequirement.NewRelationship())
+	//	} else {
+	//		self.Relationship.Normalize(nil, normalRequirement.NewRelationship())
+	//	}
+	//}
 
 	return normalRequirement
 }

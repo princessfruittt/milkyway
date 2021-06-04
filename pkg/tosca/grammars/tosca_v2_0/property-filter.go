@@ -17,10 +17,10 @@ import (
 //
 
 type PropertyFilter struct {
-	*Entity `name:"property filter"`
-	Name    string
+	*Entity `name:"property filter" yaml:"-"`
+	Name    string `yaml:"-"`
 
-	ConstraintClauses ConstraintClauses
+	ConstraintClauses ConstraintClauses `yaml:"constraints,omitempty"`
 }
 
 func NewPropertyFilter(context *tosca.Context) *PropertyFilter {

@@ -16,13 +16,14 @@ import (
 //
 
 type RequirementDefinition struct {
-	*Entity `name:"requirement definition"`
-	Name    string
+	*Entity `name:"requirement definition" yaml:"-"`
+	Name    string `yaml:"-"`
 
-	TargetCapabilityTypeName *string                 `read:"capability"` // required only if cannot be inherited
-	TargetNodeTypeName       *string                 `read:"node"`
-	RelationshipDefinition   *RelationshipDefinition `read:"relationship,RelationshipDefinition"`
-	Occurrences              *RangeEntity            `read:"occurrences,RangeEntity"`
+	TargetCapabilityTypeName *string                 `read:"capability" yaml:"capability,omitempty"` // required only if cannot be inherited
+	TargetNodeTypeName       *string                 `read:"node" yaml:"node,omitempty"`
+	TargetNodeFilter         *NodeFilter             `read:"node_filter,NodeFilter" yaml:"node_filter,omitempty"`
+	RelationshipDefinition   *RelationshipDefinition `read:"relationship,RelationshipDefinition" yaml:"-"`
+	Occurrences              *RangeEntity            `read:"occurrences,RangeEntity" yaml:"-"`
 
 	TargetCapabilityType *CapabilityType `lookup:"capability,TargetCapabilityTypeName" json:"-" yaml:"-"`
 	TargetNodeType       *NodeType       `lookup:"node,TargetNodeTypeName" json:"-" yaml:"-"`
@@ -110,6 +111,7 @@ func (self RequirementDefinition) Render() {
 //
 
 type RequirementDefinitions map[string]*RequirementDefinition
+type RequirementDefinitionsList []*RequirementDefinition
 
 func (self RequirementDefinitions) Inherit(parentDefinitions RequirementDefinitions) {
 	for name, definition := range parentDefinitions {

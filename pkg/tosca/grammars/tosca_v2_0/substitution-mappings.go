@@ -83,11 +83,11 @@ func (self *SubstitutionMappings) Render(inputDefinitions ParameterDefinitions) 
 		}
 	}
 
-	for name, mapping := range self.RequirementMappings {
-		if _, ok := self.NodeType.RequirementDefinitions[name]; !ok {
-			mapping.Context.Clone(name).ReportReferenceNotFound("requirement", self.NodeType)
-		}
-	}
+	//for name, mapping := range self.RequirementMappings {
+	//	if _, ok := self.NodeType.RequirementDefinitions[name]; !ok {
+	//		mapping.Context.Clone(name).ReportReferenceNotFound("requirement", self.NodeType)
+	//	}
+	//}
 
 	self.PropertyMappings.Render(inputDefinitions)
 	for name, mapping := range self.PropertyMappings {

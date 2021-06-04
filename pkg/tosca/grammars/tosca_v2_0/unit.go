@@ -26,7 +26,7 @@ type Unit struct {
 	Description             *string           `read:"description" yaml:"description,omitempty"`
 	Repositories            Repositories      `read:"repositories,Repository" yaml:"repositories,omitempty"`
 	Imports                 Imports           `read:"imports,[]Import" yaml:"imports,omitempty"`
-	ArtifactTypes           ArtifactTypes     `read:"artifact_types,ArtifactType" hierarchy:"" yaml:"artifact_types,omitempty"`
+	ArtifactTypes           MapArtifactTypes  `read:"artifact_types,ArtifactType" hierarchy:"" yaml:"artifact_types,omitempty"`
 	CapabilityTypes         CapabilityTypes   `read:"capability_types,CapabilityType" hierarchy:"" yaml:"capability_types,omitempty"`
 	DataTypes               DataTypes         `read:"data_types,DataType" hierarchy:"" yaml:"data_types,omitempty"`
 	GroupTypes              GroupTypes        `read:"group_types,GroupType" hierarchy:"" yaml:"group_types,omitempty"`
@@ -37,11 +37,7 @@ type Unit struct {
 }
 
 func NewUnit(context *tosca.Context) *Unit {
-	return &Unit{Entity: NewEntity(context)}
-}
-
-func (self Unit) AddArtifactType(aType ArtifactType) {
-	self.ArtifactTypes = append(self.ArtifactTypes, &aType)
+	return &Unit{Entity: NewEntity(context), NodeTypes: map[string]*NodeType{}, ArtifactTypes: map[string]*ArtifactType{}}
 }
 
 // tosca.Reader signature

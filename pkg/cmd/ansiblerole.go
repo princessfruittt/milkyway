@@ -59,8 +59,8 @@ type GalaxyMeta struct {
 	MinAnsibleVersion string     `yaml:"min_ansible_version,omitempty"`
 }
 type Platform struct {
-	Name     string   `yaml:"name,omitempty"`
-	Versions []string `yaml:"versions,omitempty"`
+	Name     string        `yaml:"name,omitempty"`
+	Versions []interface{} `yaml:"versions,omitempty"`
 }
 type Data interface {
 }
@@ -153,10 +153,8 @@ func getRoleContent(rolePath string, parentDirName string, r *role) error {
 				pdn := strings.ToLower(parentDirName)
 				r.r.Artifacts[pdn] = pdn
 				ar := reflect.ValueOf(&r.r).Elem()
-				if ar.FieldByName(strings.Title(parentDirName)).Kind() == reflect.Array {
-					srcArr := [2]byte{}
-					copy(srcArr[:], content)
-					reflect.Copy(ar, reflect.ValueOf(srcArr))
+				if ar.FieldByName(strings.Title(parentDirName)).Kind() == reflect.Slice {
+					ar.FieldByName(strings.Title(parentDirName)).Set(reflect.Append(ar.FieldByName(strings.Title(parentDirName)), reflect.ValueOf(content)))
 				}
 			}
 			return err

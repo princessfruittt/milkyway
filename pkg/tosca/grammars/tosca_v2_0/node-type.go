@@ -17,12 +17,12 @@ import (
 type NodeType struct {
 	*Type `name:"node type" yaml:",inline"`
 
-	PropertyDefinitions    PropertyDefinitions    `read:"properties,PropertyDefinition" inherit:"properties,Parent" yaml:"properties,omitempty"`
-	AttributeDefinitions   AttributeDefinitions   `read:"attributes,AttributeDefinition" inherit:"attributes,Parent" yaml:"attributes,omitempty"`
-	CapabilityDefinitions  CapabilityDefinitions  `read:"capabilities,CapabilityDefinition" inherit:"capabilities,Parent" yaml:"capabilities,omitempty"`
-	RequirementDefinitions RequirementDefinitions `read:"requirements,{}RequirementDefinition" inherit:"requirements,Parent" yaml:"requirements,omitempty"` // sequenced list, but we read it into map
-	InterfaceDefinitions   InterfaceDefinitions   `read:"interfaces,InterfaceDefinition" inherit:"interfaces,Parent" yaml:"interfaces,omitempty"`
-	ArtifactDefinitions    ArtifactDefinitions    `read:"artifacts,ArtifactDefinition" inherit:"artifacts,Parent" yaml:"artifacts,omitempty"`
+	PropertyDefinitions    PropertyDefinitions        `read:"properties,PropertyDefinition" inherit:"properties,Parent" yaml:"properties,omitempty"`
+	AttributeDefinitions   AttributeDefinitions       `read:"attributes,AttributeDefinition" inherit:"attributes,Parent" yaml:"attributes,omitempty"`
+	CapabilityDefinitions  CapabilityDefinitions      `read:"capabilities,CapabilityDefinition" inherit:"capabilities,Parent" yaml:"capabilities,omitempty"`
+	RequirementDefinitions RequirementDefinitionsList `read:"requirements,{}RequirementDefinition" inherit:"requirements,Parent" yaml:"requirements,omitempty"` // sequenced list, but we read it into map
+	InterfaceDefinitions   InterfaceDefinitions       `read:"interfaces,InterfaceDefinition" inherit:"interfaces,Parent" yaml:"interfaces,omitempty"`
+	ArtifactDefinitions    ArtifactDefinitions        `read:"artifacts,ArtifactDefinition" inherit:"artifacts,Parent" yaml:"artifacts,omitempty"`
 
 	Parent *NodeType `lookup:"derived_from,ParentName" json:"-" yaml:"-"`
 }
@@ -33,7 +33,7 @@ func NewNodeType(context *tosca.Context) *NodeType {
 		PropertyDefinitions:    make(PropertyDefinitions),
 		AttributeDefinitions:   make(AttributeDefinitions),
 		CapabilityDefinitions:  make(CapabilityDefinitions),
-		RequirementDefinitions: make(RequirementDefinitions),
+		RequirementDefinitions: nil,
 		InterfaceDefinitions:   make(InterfaceDefinitions),
 		ArtifactDefinitions:    make(ArtifactDefinitions),
 	}
@@ -41,6 +41,11 @@ func NewNodeType(context *tosca.Context) *NodeType {
 
 func (self NodeType) AddProperty(k string, v PropertyDefinition) {
 	self.PropertyDefinitions[k] = &v
+}
+
+func (self NodeType) AddRequirement(v RequirementDefinition) {
+	temp := []*RequirementDefinition{&v}
+	self.RequirementDefinitions = append(self.RequirementDefinitions, temp...)
 }
 func (self NodeType) AddInterface(k string, v InterfaceDefinition) {
 	self.InterfaceDefinitions[k] = &v
@@ -72,7 +77,7 @@ func (self *NodeType) Inherit() {
 	self.PropertyDefinitions.Inherit(self.Parent.PropertyDefinitions)
 	self.AttributeDefinitions.Inherit(self.Parent.AttributeDefinitions)
 	self.CapabilityDefinitions.Inherit(self.Parent.CapabilityDefinitions)
-	self.RequirementDefinitions.Inherit(self.Parent.RequirementDefinitions)
+	//self.RequirementDefinitions.Inherit(self.Parent.RequirementDefinitions)
 	self.InterfaceDefinitions.Inherit(self.Parent.InterfaceDefinitions)
 	self.ArtifactDefinitions.Inherit(self.Parent.ArtifactDefinitions)
 }

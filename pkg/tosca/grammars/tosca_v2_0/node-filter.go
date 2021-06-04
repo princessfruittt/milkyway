@@ -16,10 +16,15 @@ import (
 //
 
 type NodeFilter struct {
-	*Entity `name:"node filter"`
+	*Entity `name:"node filter" yaml:"-"`
 
-	PropertyFilters   PropertyFilters   `read:"properties,PropertyFilter"`
-	CapabilityFilters CapabilityFilters `read:"capabilities,{}CapabilityFilter"`
+	PropertyFilters   PropertyFilters   `read:"properties,PropertyFilter" yaml:"-"`
+	CapabilityFilters CapabilityFilters `read:"capabilities,{}CapabilityFilter" yaml:"capabilities,omitempty"`
+}
+
+func (self NodeFilter) AddCapabilityFilter(v CapabilityFilter) {
+	temp := []*CapabilityFilter{&v}
+	self.CapabilityFilters = append(self.CapabilityFilters, temp...)
 }
 
 func NewNodeFilter(context *tosca.Context) *NodeFilter {

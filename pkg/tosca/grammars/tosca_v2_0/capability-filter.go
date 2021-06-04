@@ -16,12 +16,19 @@ import (
 //
 
 type CapabilityFilter struct {
-	*Entity `name:"capability filter"`
-	Name    string
+	*Entity `name:"capability filter" yaml:"-"`
+	Name    string `yaml:"-"`
 
-	PropertyFilters PropertyFilters `read:"properties,PropertyFilter"`
+	PropertyFilters PropertyFilters `read:"properties,PropertyFilter" yaml:",inline"`
 }
 
+func (self CapabilityFilter) AddPropertyFilters(k string, v PropertyFilter) CapabilityFilter {
+	if self.PropertyFilters == nil {
+		self.PropertyFilters = make(PropertyFilters)
+	}
+	self.PropertyFilters[k] = &v
+	return self
+}
 func NewCapabilityFilter(context *tosca.Context) *CapabilityFilter {
 	return &CapabilityFilter{
 		Entity:          NewEntity(context),

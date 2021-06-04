@@ -44,11 +44,12 @@ var ConstraintClauseNativeArgumentIndexes = map[string][]uint{
 //
 
 type ConstraintClause struct {
-	*Entity `name:"constraint clause"`
+	*Entity `name:"constraint clause" yaml:"-"`
 
-	Operator              string
-	Arguments             ard.List
-	NativeArgumentIndexes []uint
+	Valid                 string    `yaml:"valid_values,omitempty"`
+	Operator              string    `yaml:"-"`
+	Arguments             ard.List  `yaml:"-"`
+	NativeArgumentIndexes []uint    `yaml:"-"`
 	DataType              *DataType `traverse:"ignore" json:"-" yaml:"-"`
 }
 

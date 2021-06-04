@@ -53,13 +53,14 @@ func (self *RequirementMapping) GetKey() string {
 	return self.Name
 }
 
-func (self *RequirementMapping) GetRequirementDefinition() (*RequirementDefinition, bool) {
-	if (self.Requirement != nil) && (self.NodeTemplate != nil) {
-		return self.Requirement.GetDefinition(self.NodeTemplate)
-	} else {
-		return nil, false
-	}
-}
+//
+//func (self *RequirementMapping) GetRequirementDefinition() (*RequirementDefinition, bool) {
+//	if (self.Requirement != nil) && (self.NodeTemplate != nil) {
+//		return self.Requirement.GetDefinition(self.NodeTemplate)
+//	} else {
+//		return nil, false
+//	}
+//}
 
 // parser.Renderable interface
 func (self *RequirementMapping) Render() {

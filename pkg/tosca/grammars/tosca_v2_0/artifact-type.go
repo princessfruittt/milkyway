@@ -15,13 +15,15 @@ import (
 //
 
 type ArtifactType struct {
-	*Type `name:"artifact type"`
+	*Type `name:"artifact type" yaml:"-"`
 
-	PropertyDefinitions PropertyDefinitions `read:"properties,PropertyDefinition" inherit:"properties,Parent"`
-	MIMEType            *string             `read:"mime_type" inherit:"mime_type,Parent"`
-	FileExtension       *[]string           `read:"file_ext" inherit:"file_ext,Parent"`
+	PropertyDefinitions PropertyDefinitions `read:"properties,PropertyDefinition" inherit:"properties,Parent" yaml:"-"`
+	MIMEType            *string             `read:"mime_type" inherit:"mime_type,Parent" yaml:"-"`
+	FileExtension       *[]string           `read:"file_ext" inherit:"file_ext,Parent" yaml:"-"`
 
-	Parent *ArtifactType `lookup:"derived_from,ParentName" json:"-" yaml:"-"`
+	Parent      *ArtifactType `lookup:"derived_from,ParentName" json:"-" yaml:"-"`
+	Description *string       `yaml:"description,omitempty"`
+	ParentName  *string       `yaml:"derived_from"`
 }
 
 func NewArtifactType(context *tosca.Context) *ArtifactType {
@@ -59,3 +61,4 @@ func (self *ArtifactType) Inherit() {
 //
 
 type ArtifactTypes []*ArtifactType
+type MapArtifactTypes map[string]*ArtifactType

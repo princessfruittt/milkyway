@@ -19,6 +19,9 @@ type AnsibleRole struct {
 	Tasks        [][]byte
 	Vars         [][]byte
 	Defaults     [][]byte
+	MetaDir      fs.FileInfo
+	VarsDir      fs.FileInfo
+	DefaultsDir  fs.FileInfo
 	TasksDir     fs.FileInfo
 	TemplatesDir fs.FileInfo
 	HandlersDir  fs.FileInfo

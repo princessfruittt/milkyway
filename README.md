@@ -2,6 +2,7 @@
 Milkyway is a [TOSCA generator](https://docs.oasis-open.org/tosca/TOSCA/v2.0/csd03/TOSCA-v2.0-csd03.html#_Toc56506778). It will help you to use [OASIS TOSCA](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=tosca) (Topology and Orchestration Specification for Cloud Applications) standard without knowledge of TOSCA.
 You only need to put URL link for Ansible Galaxy Role from Github or path to the directory and get ready CSAR Archive to use it in TOSCA Orchestrator.
 # Quick start 
+* Require Go v16 and higher
 ## Build
 ```
 # if you have not got already installed golang -> check "realy quick start" section

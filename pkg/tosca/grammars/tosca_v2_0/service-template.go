@@ -40,9 +40,8 @@ func (self ServiceTemplate) AddImport(imp *Import) {
 	self.Unit.Imports = append(self.Unit.Imports, temp...)
 }
 
-func (self ServiceTemplate) AddDefinitionVersion() {
-	v := "tosca_2_0"
-	self.Unit.ToscaDefinitionsVersion = &v
+func (self ServiceTemplate) AddDefinitionVersion(version string) {
+	self.Unit.ToscaDefinitionsVersion = &version
 }
 
 func (self ServiceTemplate) AddUnit(u Unit) {

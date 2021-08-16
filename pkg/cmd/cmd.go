@@ -101,10 +101,9 @@ type builderCommon struct {
 }
 
 func (cc *builderCommon) handleFlags(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&cc.toscaVersion, "tosca", "t", "2", `Version of TOSCA. e.g: -tv 1. 
+	cmd.Flags().StringVarP(&cc.toscaVersion, "tosca", "v", "2", `Version of TOSCA. e.g: -v 2. 
 List of versions:
-	1 - TOSCA v1.0
-	1.1 or 1.2 or 1.3 - TOSCA Simple YAML Profile versions
+	from 1.0 to 1.3 - TOSCA Simple YAML Profile versions
 	2 - TOSCA v2.0
 `)
 }

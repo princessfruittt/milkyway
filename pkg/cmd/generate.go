@@ -51,18 +51,20 @@ func (c *generateCmd) generateType(cmd *cobra.Command, args []string) {
 	if len(c.path) == 0 && len(c.url) == 0 {
 		log.Fatal("Please, fill -path or -url flag (i.e., generate -p [path_to_role]).")
 	} else {
-		var st *tosca2.ServiceTemplate
+		var ansibleRole AnsibleRole
 		if len(c.url) > 0 {
 			u, err := url.Parse(c.url)
 			if err != nil || len(u.Path) < 3 {
 				log.Fatal(err)
 			}
 			con := GitHubConnect(u.Path)
-			st = con.ansibleRole.transform(c.name)
+			ansibleRole = con.ansibleRole
 		} else if len(c.path) > 0 {
-			ansibleRole := GetRoleFromPath(c.path)
-			st = ansibleRole.transform(c.name)
+			ansibleRole = GetRoleFromPath(c.path)
 		}
+		// ServiceTemplate similar for TOASCA versions
+		var st *tosca2.ServiceTemplate
+		st = ansibleRole.transform(c.name, c.toscaVersion)
 		b, err := yaml.Marshal(st)
 		if err != nil {
 			log.Fatal(err)
@@ -71,7 +73,7 @@ func (c *generateCmd) generateType(cmd *cobra.Command, args []string) {
 	}
 }
 
-func (ar AnsibleRole) transform(name string) *tosca2.ServiceTemplate {
+func (ar AnsibleRole) transform(name string, ver string) *tosca2.ServiceTemplate {
 	ar.Name = strcase.ToCamel(name)
 	stylist := terminal.Stylize
 	templateContext := tosca.NewContext(stylist, tosca.NewQuirks())
@@ -104,7 +106,7 @@ func (ar AnsibleRole) transform(name string) *tosca2.ServiceTemplate {
 			meta["min_ansible_version"] = m.Meta.MinAnsibleVersion
 		}
 		nodeType.Metadata = meta
-		if m.Meta.Platforms != nil {
+		if m.Meta.Platforms != nil && ver == "2.0" {
 			nodeType = fillRequirements(nodeType, m.Meta.Platforms)
 		}
 	}
@@ -123,7 +125,13 @@ func (ar AnsibleRole) transform(name string) *tosca2.ServiceTemplate {
 	if ar.TasksMain != nil {
 		fillInterfaces(nodeType, ar)
 	}
-	serviceTemplate.AddDefinitionVersion()
+	switch ver {
+	case "1.0", "1.1", "1.2", "1.3":
+		serviceTemplate.AddDefinitionVersion("tosca_simple_yaml_" + strings.Replace(ver, ".", "_", -1))
+	default:
+		serviceTemplate.AddDefinitionVersion("tosca_2_0")
+	}
+
 	serviceTemplate.AddNodeType(nodeType.Name, *nodeType)
 	//fillImports(serviceTemplate)
 	return serviceTemplate

@@ -51,6 +51,8 @@ Program generates CSAR archive with below structure:
 ├───defaults:
 |   └──main.yaml
 ```
+After that you can use CSAR with another TOSCA tool
+
 # Really quick start :stars:
 * [install go](https://golang.org/doc/install)
 ```
